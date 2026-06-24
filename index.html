@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>خطة المحتوى</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Space+Mono&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  /* ============== CONFIG: بدّل دول بمفاتيح مشروع Supabase الجديد ============== */
+  :root{
+    --brand:#15233F; --brand2:#1E3358; --gold:#E0A93B;
+    --bg:#F4F6F9; --panel:#FFFFFF; --raised:#F7F9FC; --raised2:#EEF2F8;
+    --txt:#16213A; --muted:#5C6B85; --faint:#9AA8C0; --line:#E6EBF3; --line2:#D9E1EE;
+    --idea:#9AA8C0; --doing:#2E7BE0; --ready:#1FA971; --pub:#15233F;
+    --aware:#2563EB; --interest:#0EA5A4; --decision:#E0A93B; --action:#E5533C; --retention:#8B5CF6;
+    --danger:#E5533C; --danger-dim:#FCE9E5;
+    --radius:16px; --shadow:0 10px 34px rgba(21,35,63,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--txt);-webkit-font-smoothing:antialiased}
+  .mono{font-family:'Space Mono',monospace}
+  .hidden{display:none!important}
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
+  input,select,textarea{font-family:inherit}
+  img{display:block;max-width:100%}
+  a{color:inherit}
+
+  /* ---------- AUTH ---------- */
+  .auth{min-height:100vh;display:grid;place-items:center;padding:24px;
+    background:radial-gradient(1200px 600px at 50% -10%, #20355C 0%, #15233F 60%)}
+  .auth-card{width:100%;max-width:380px;background:var(--panel);border-radius:22px;padding:34px 28px;box-shadow:var(--shadow);text-align:center}
+  .auth-logo{width:74px;height:74px;border-radius:20px;margin:0 auto 16px;display:grid;place-items:center;background:var(--brand);overflow:hidden}
+  .auth-logo img{width:74px;height:74px;object-fit:cover}
+  .auth h1{font-size:21px;font-weight:900;margin-bottom:4px}
+  .auth .tag{color:var(--muted);font-size:13.5px;margin-bottom:24px}
+  .auth input{width:100%;height:48px;border:1px solid var(--line2);border-radius:12px;padding:0 14px;font-size:15px;margin-bottom:12px;background:var(--raised);color:var(--txt)}
+  .auth input:focus{outline:none;border-color:var(--gold)}
+  .auth .go{width:100%;height:48px;border-radius:12px;background:var(--brand);color:#fff;font-weight:800;font-size:15px;margin-top:4px}
+  .auth .go:hover{background:var(--brand2)}
+  .auth .switch{margin-top:16px;font-size:13.5px;color:var(--muted)}
+  .auth .switch b{color:var(--gold);cursor:pointer}
+  .auth .err{color:var(--danger);font-size:13px;margin-top:10px;min-height:18px}
+
+  /* ---------- SHELL ---------- */
+  .topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--brand);color:#fff}
+  .topbar .logo{width:38px;height:38px;border-radius:10px;overflow:hidden;flex:none;background:#fff2}
+  .topbar .logo img{width:38px;height:38px;object-fit:cover}
+  .topbar h1{font-size:17px;font-weight:900;line-height:1.1}
+  .topbar .sub{font-size:11.5px;color:#AEBEDA}
+  .topbar .spacer{flex:1}
+  .top-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;height:42px;padding:0 16px;border-radius:11px;font-weight:800;font-size:14px;display:inline-flex;align-items:center;gap:7px}
+  .top-btn:hover{background:rgba(255,255,255,.2)}
+  .top-btn.gold{background:var(--gold);border-color:var(--gold);color:#3A2A06}
+  .me-ava{width:38px;height:38px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:800;background:var(--gold);color:#3A2A06;cursor:pointer;overflow:hidden}
+  .me-ava img{width:100%;height:100%;object-fit:cover}
+
+  .wrap{max-width:1080px;margin:0 auto;padding:22px 20px 60px}
+  .tabs{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:4px;gap:4px;margin-bottom:22px;box-shadow:var(--shadow)}
+  .tabs button{padding:9px 18px;border-radius:9px;font-weight:800;font-size:14px;color:var(--muted)}
+  .tabs button.on{background:var(--brand);color:#fff}
+
+  .head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+  .head .ttl{font-size:23px;font-weight:900}
+  .head .sb{font-size:13.5px;color:var(--muted);margin-top:3px}
+
+  /* funnel legend */
+  .funnel{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+  .fstage{display:flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--line);border-radius:30px;padding:6px 13px;font-size:12.5px;font-weight:700;cursor:pointer;user-select:none}
+  .fstage .dot{width:11px;height:11px;border-radius:50%}
+  .fstage.off{opacity:.4}
+
+  /* week */
+  .week-nav{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+  .week-nav button{width:38px;height:38px;border-radius:10px;background:var(--panel);border:1px solid var(--line2);font-size:16px;font-weight:800;color:var(--muted)}
+  .week-nav .label{font-weight:800;font-size:15px}
+  .day{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:12px;overflow:hidden}
+  .day-h{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--raised)}
+  .day-h .dname{font-weight:900;font-size:14.5px}
+  .day-h .ddate{font-size:11.5px;color:var(--faint)}
+  .day-h.today .dname{color:var(--gold)}
+  .day-h .add{margin-inline-start:auto;width:30px;height:30px;border-radius:8px;background:var(--brand);color:#fff;font-size:18px;font-weight:700;line-height:1}
+  .day-body{padding:10px 14px;display:flex;flex-direction:column;gap:8px}
+  .day-empty{color:var(--faint);font-size:12.5px;padding:6px 2px}
+
+  /* post row / card */
+  .post{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px 14px;cursor:pointer;transition:.12s}
+  .post:hover{border-color:var(--line2);box-shadow:0 4px 14px rgba(21,35,63,.06)}
+  .stage-rail{width:5px;align-self:stretch;border-radius:6px;flex:none}
+  .post .main{flex:1;min-width:0}
+  .post .pt{font-weight:800;font-size:14.5px;line-height:1.35}
+  .post .pmeta{display:flex;gap:8px;flex-wrap:wrap;margin-top:5px;font-size:11.5px;color:var(--muted)}
+  .chip{font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--raised2);color:var(--muted)}
+  .chip.stage{color:#fff}
+  .chip.goal{background:#FBF3E0;color:#8A6A18}
+  .stt{font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;flex:none}
+
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .col{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px;min-height:90px}
+  .col-h{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13.5px;margin-bottom:12px;padding:2px}
+  .col-h .n{margin-inline-start:auto;background:var(--raised2);color:var(--muted);font-size:11px;border-radius:20px;padding:1px 9px}
+  .col .post{margin-bottom:9px}
+
+  .empty{text-align:center;color:var(--muted);padding:60px 20px;background:var(--panel);border:1px dashed var(--line2);border-radius:var(--radius)}
+  .empty .big{font-size:40px;margin-bottom:10px}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(16,24,41,.5);display:none;align-items:center;justify-content:center;z-index:60;padding:18px}
+  .overlay.show{display:flex}
+  .modal{background:var(--panel);border-radius:18px;width:540px;max-width:100%;max-height:92vh;overflow:auto;box-shadow:var(--shadow)}
+  .mh{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line)}
+  .mh h3{font-size:16px;font-weight:900}
+  .mh .x{width:32px;height:32px;border-radius:9px;background:var(--raised2);font-size:18px;color:var(--muted)}
+  .mb{padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+  .field label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:6px}
+  .field input,.field select,.field textarea{width:100%;border:1px solid var(--line2);border-radius:11px;padding:11px 13px;font-size:14px;background:var(--raised);color:var(--txt)}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gold)}
+  .field textarea{min-height:64px;resize:vertical}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .seg{display:flex;gap:6px;flex-wrap:wrap}
+  .seg button{flex:1;min-width:fit-content;padding:9px 8px;border-radius:9px;border:1px solid var(--line2);background:var(--raised);font-size:12.5px;font-weight:700;color:var(--muted)}
+  .seg button.on{color:#fff;border-color:transparent}
+  .stage-seg button.on{}
+  .mf{display:flex;gap:10px;padding:16px 20px;border-top:1px solid var(--line);flex-wrap:wrap;align-items:center}
+  .btn{height:44px;padding:0 18px;border-radius:11px;font-weight:800;font-size:14px;border:1px solid var(--line2);background:var(--panel);color:var(--txt)}
+  .btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .btn.primary:hover{background:var(--brand2)}
+  .btn.ghost{background:var(--raised)}
+  .danger-link{color:var(--danger);font-weight:800;font-size:13.5px}
+  .comments{display:flex;flex-direction:column;gap:8px;max-height:200px;overflow:auto}
+  .cmt{background:var(--raised);border:1px solid var(--line);border-radius:11px;padding:9px 12px;font-size:13px}
+  .cmt .h{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-bottom:3px}
+  .cmt .h b{color:var(--muted)}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--brand);color:#fff;padding:12px 20px;border-radius:12px;font-weight:700;font-size:14px;opacity:0;transition:.25s;z-index:90;box-shadow:var(--shadow)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.bad{background:var(--danger)}
+
+  .pp{width:52px;height:52px;border-radius:50%;overflow:hidden;display:inline-block;cursor:pointer;border:2px solid transparent}
+  .pp:hover{border-color:var(--gold)}
+
+  @media(max-width:820px){.grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:600px){
+    .wrap{padding:16px 14px 50px}.grid{grid-template-columns:1fr}
+    .topbar{padding:10px 14px}.topbar .sub{display:none}
+    .top-btn .lbl{display:none}.top-btn{padding:0 12px}
+    .two{grid-template-columns:1fr}.head .ttl{font-size:20px}
+    .tabs{width:100%}.tabs button{flex:1}
+  }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth" class="auth">
+  <div class="auth-card">
+    <div class="auth-logo"><img src="logo-white.png" alt="A to Z" onerror="this.style.display='none'"></div>
+    <h1>خطة المحتوى</h1>
+    <div class="tag" id="authTag">متابعة المحتوى بينك وبين المستر</div>
+    <input id="au_name" placeholder="اسمك" class="hidden">
+    <input id="au_email" type="email" placeholder="الإيميل">
+    <input id="au_pass" type="password" placeholder="كلمة السر">
+    <button class="go" id="au_go">دخول</button>
+    <div class="err" id="au_err"></div>
+    <div class="switch" id="au_switch">لسه معندكش حساب؟ <b>اعمل حساب</b></div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading" class="auth hidden"><div style="color:#fff;font-weight:700">بيحمّل…</div></div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <div class="topbar">
+    <div class="logo"><img src="logo-white.png" alt="" onerror="this.parentElement.style.display='none'"></div>
+    <div><h1>خطة المحتوى</h1><div class="sub">A to Z — متابعة مع المستر</div></div>
+    <div class="spacer"></div>
+    <button class="top-btn gold" id="addBtn"><span style="font-size:17px">＋</span><span class="lbl">بوست</span></button>
+    <div class="me-ava" id="meAva" title="صورتك"></div>
+    <button class="top-btn" id="logoutBtn"><span class="lbl">خروج</span><span style="font-size:15px">⎋</span></button>
+  </div>
+  <div class="wrap">
+    <div class="tabs">
+      <button id="tabWeek" class="on">📅 خطة الأسبوع</button>
+      <button id="tabAll">🗂 كل البوستات</button>
+      <button id="tabFunnel">🎯 حسب المرحلة</button>
+    </div>
+    <div id="main"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay"><div class="modal">
+  <div class="mh"><h3 id="mTitle">بوست جديد</h3><button class="x" id="mClose">×</button></div>
+  <div class="mb" id="mBody"></div>
+  <div class="mf" id="mFoot"></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ====== CONFIG: مفاتيح مشروع Supabase الجديد ====== */
+const SUPABASE_URL = 'https://yfnyscklsivyiizcokmo.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_T8H5XdsYu52t2fh4i0-edA_10coce_u';
+/* ================================================== */
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const PLATFORMS=[{id:'facebook',name:'فيسبوك'},{id:'instagram',name:'إنستجرام'},{id:'tiktok',name:'تيك توك'},{id:'youtube',name:'يوتيوب'}];
+const TYPES=['ريلز','فيديو شرح','كاروسيل','إعلان','بوست','ستوري'];
+const STAGES=[
+  {id:'awareness', name:'وعي',    color:'var(--aware)',     hex:'#2563EB', desc:'الطالب يعرف إن عنده مشكلة'},
+  {id:'interest',  name:'اهتمام', color:'var(--interest)',  hex:'#0EA5A4', desc:'يتفاعل، يتابع، يحفظ'},
+  {id:'decision',  name:'قرار',   color:'var(--decision)',  hex:'#E0A93B', desc:'يقتنع ويقارن'},
+  {id:'action',    name:'فعل',    color:'var(--action)',    hex:'#E5533C', desc:'يسجّل / يحجز / يشتري'},
+  {id:'retention', name:'ولاء',   color:'var(--retention)', hex:'#8B5CF6', desc:'يستمر ويرشّح غيره'},
+];
+const STATUSES=[{id:'idea',name:'فكرة',color:'#9AA8C0'},{id:'doing',name:'بيتعمل',color:'#2E7BE0'},{id:'ready',name:'جاهز',color:'#1FA971'},{id:'published',name:'اتنشر',color:'#15233F'}];
+const DAYS=['الأحد','الاتنين','التلات','الأربع','الخميس','الجمعة','السبت'];
+
+let ME=null, PROFILES=[], POSTS=[], COMMENTS=[];
+let tab='week', weekOffset=0, stageFilter=null, signUp=false;
+
+const S=id=>STAGES.find(x=>x.id===id);
+const ST=id=>STATUSES.find(x=>x.id===id);
+const PL=id=>PLATFORMS.find(x=>x.id===id);
+const U=id=>PROFILES.find(x=>x.id===id)||{name:'—'};
+const $=id=>document.getElementById(id);
+const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const escAttr=s=>(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+const val=id=>{const e=$(id);return e?e.value:'';};
+function ymd(d){const z=new Date(d.getTime()-d.getTimezoneOffset()*60000);return z.toISOString().slice(0,10);}
+function normUrl(u){u=(u||'').trim();if(!u)return'';if(!/^https?:\/\//.test(u))u='https://'+u;return u;}
+let toastT;function toast(m,bad){const t=$('toast');t.textContent=m;t.classList.toggle('bad',!!bad);t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2400);}
+function initials(n){return (n||'?').replace(/[()م.]/g,'').trim().split(' ')[0].slice(0,2);}
+
+/* ---------- AUTH ---------- */
+function setSignUp(on){signUp=on;
+  $('au_name').classList.toggle('hidden',!on);
+  $('au_go').textContent=on?'اعمل حساب':'دخول';
+  $('au_switch').innerHTML=on?'عندك حساب؟ <b>سجّل دخول</b>':'لسه معندكش حساب؟ <b>اعمل حساب</b>';
+  $('au_switch').querySelector('b').onclick=()=>setSignUp(!on);
+}
+function authErr(m){$('au_err').textContent=m||'';}
+async function doAuth(){
+  const email=val('au_email').trim(), pass=val('au_pass');
+  if(!email||!pass)return authErr('اكتب الإيميل وكلمة السر');
+  authErr('');
+  if(signUp){
+    const name=val('au_name').trim()||email.split('@')[0];
+    const {error}=await sb.auth.signUp({email,password:pass,options:{data:{name}}});
+    if(error)return authErr(error.message);
+    toast('اتعمل الحساب، سجّل دخول');
+    setSignUp(false);
+  }else{
+    const {error}=await sb.auth.signInWithPassword({email,password:pass});
+    if(error)return authErr('بيانات الدخول غلط');
+  }
+}
+
+/* ---------- DATA ---------- */
+async function reload(){
+  const [p,po,c]=await Promise.all([
+    sb.from('profiles').select('*'),
+    sb.from('posts').select('*').order('pub_date',{ascending:true}),
+    sb.from('comments').select('*').order('created_at',{ascending:true}),
+  ]);
+  PROFILES=p.data||[]; POSTS=po.data||[]; COMMENTS=c.data||[];
+}
+async function enterApp(){
+  $('auth').classList.add('hidden'); $('loading').classList.remove('hidden');
+  const {data:{user}}=await sb.auth.getUser();
+  let {data:prof}=await sb.from('profiles').select('*').eq('id',user.id).single();
+  if(!prof){await sb.from('profiles').insert({id:user.id,name:user.user_metadata?.name||user.email.split('@')[0]});({data:prof}=await sb.from('profiles').select('*').eq('id',user.id).single());}
+  ME=prof; await reload();
+  $('loading').classList.add('hidden'); $('app').classList.remove('hidden');
+  wire(); render();
+}
+
+/* ---------- RENDER ---------- */
+function render(){
+  // me avatar
+  const ma=$('meAva');
+  if(ME.avatar_url){ma.innerHTML=`<img src="${escAttr(ME.avatar_url)}">`;}
+  else{ma.textContent=initials(ME.name);}
+  $('tabWeek').classList.toggle('on',tab==='week');
+  $('tabAll').classList.toggle('on',tab==='all');
+  $('tabFunnel').classList.toggle('on',tab==='funnel');
+  const m=$('main');
+  if(tab==='week')m.innerHTML=weekView();
+  else if(tab==='all')m.innerHTML=allView();
+  else m.innerHTML=funnelView();
+  m.querySelectorAll('[data-post]').forEach(el=>el.onclick=()=>openPost(el.dataset.post));
+  m.querySelectorAll('[data-add]').forEach(el=>el.onclick=e=>{e.stopPropagation();openPost(null,el.dataset.add);});
+}
+
+function stageChip(id){const s=S(id);return s?`<span class="chip stage" style="background:${s.hex}">${s.name}</span>`:'';}
+function statusChip(id){const s=ST(id);return `<span class="stt" style="background:${s.color}22;color:${s.color}">${s.name}</span>`;}
+function postRow(p){
+  const s=S(p.stage);
+  return `<div class="post" data-post="${p.id}">
+    <span class="stage-rail" style="background:${s?s.hex:'var(--line2)'}"></span>
+    <div class="main"><div class="pt">${esc(p.title)}</div>
+      <div class="pmeta">
+        ${p.platform?`<span class="chip">${PL(p.platform)?.name||p.platform}</span>`:''}
+        ${p.content_type?`<span class="chip">${esc(p.content_type)}</span>`:''}
+        ${p.stage?stageChip(p.stage):''}
+        ${p.goal?`<span class="chip goal">🎯 ${esc(p.goal)}</span>`:''}
+      </div></div>
+    ${statusChip(p.status)}</div>`;
+}
+
+/* WEEK */
+function weekStart(off){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-d.getDay()+off*7);return d;}
+function weekView(){
+  const start=weekStart(weekOffset);
+  const end=new Date(start);end.setDate(start.getDate()+6);
+  const fmt=d=>d.toLocaleDateString('ar-EG',{day:'numeric',month:'short'});
+  const todayStr=ymd(new Date());
+  let days='';
+  for(let i=0;i<7;i++){
+    const d=new Date(start);d.setDate(start.getDate()+i);const ds=ymd(d);
+    let ps=POSTS.filter(p=>p.pub_date===ds);
+    if(stageFilter)ps=ps.filter(p=>p.stage===stageFilter);
+    days+=`<div class="day"><div class="day-h ${ds===todayStr?'today':''}">
+      <span class="dname">${DAYS[d.getDay()]}</span><span class="ddate">${fmt(d)}</span>
+      <button class="add" data-add="${ds}">＋</button></div>
+      <div class="day-body">${ps.length?ps.map(postRow).join(''):'<div class="day-empty">مفيش بوستات لليوم ده</div>'}</div></div>`;
+  }
+  return `<div class="head"><div><div class="ttl">خطة الأسبوع</div><div class="sb">بوستات كل يوم — دوس ＋ تضيف بوست في يومه</div></div></div>
+    ${funnelLegend()}
+    <div class="week-nav"><button id="wPrev">›</button><span class="label">${fmt(start)} — ${fmt(end)}</span><button id="wNext">‹</button>
+      ${weekOffset!==0?'<button id="wToday" style="width:auto;padding:0 14px;font-size:13px">النهارده</button>':''}</div>
+    ${days}`;
+}
+
+/* ALL — by status */
+function allView(){
+  let ps=POSTS.slice(); if(stageFilter)ps=ps.filter(p=>p.stage===stageFilter);
+  const cols=STATUSES.map(s=>{const items=ps.filter(p=>p.status===s.id);
+    return `<div class="col"><div class="col-h"><span style="width:10px;height:10px;border-radius:50%;background:${s.color};display:inline-block"></span>${s.name}<span class="n">${items.length}</span></div>
+      ${items.map(postRow).join('')||'<div class="day-empty">—</div>'}</div>`;}).join('');
+  return `<div class="head"><div><div class="ttl">كل البوستات</div><div class="sb">مقسّمة بالحالة</div></div></div>${funnelLegend()}<div class="grid">${cols}</div>`;
+}
+
+/* FUNNEL — by stage */
+function funnelView(){
+  const secs=STAGES.map(s=>{const items=POSTS.filter(p=>p.stage===s.id);
+    return `<div class="head" style="margin-top:18px;margin-bottom:10px"><div><div class="ttl" style="font-size:17px;display:flex;align-items:center;gap:9px"><span style="width:13px;height:13px;border-radius:50%;background:${s.hex};display:inline-block"></span>${s.name} <span style="color:var(--faint);font-size:13px;font-weight:600">(${items.length})</span></div><div class="sb">${s.desc}</div></div></div>
+      ${items.length?items.map(postRow).join(''):'<div class="day-empty" style="padding-bottom:8px">مفيش بوستات في المرحلة دي</div>'}`;
+  }).join('');
+  const none=POSTS.filter(p=>!p.stage);
+  return `<div class="head"><div><div class="ttl">حسب المرحلة التسويقية</div><div class="sb">رحلة الطالب من الوعي للولاء</div></div></div>${secs}
+    ${none.length?`<div class="head" style="margin-top:18px;margin-bottom:10px"><div><div class="ttl" style="font-size:17px">من غير مرحلة (${none.length})</div></div></div>${none.map(postRow).join('')}`:''}`;
+}
+
+function funnelLegend(){
+  return `<div class="funnel">${STAGES.map(s=>`<span class="fstage ${stageFilter&&stageFilter!==s.id?'off':''}" data-stage="${s.id}"><span class="dot" style="background:${s.hex}"></span>${s.name}</span>`).join('')}
+    ${stageFilter?'<span class="fstage" data-stage="" style="background:var(--raised2)">✕ الكل</span>':''}</div>`;
+}
+
+/* ---------- POST MODAL ---------- */
+function openPost(id,presetDate){
+  const p=id?POSTS.find(x=>x.id===id):null;
+  const cmts=p?COMMENTS.filter(c=>c.post_id===p.id):[];
+  $('mTitle').textContent=p?'تفاصيل البوست':'بوست جديد';
+  $('mBody').innerHTML=`
+    <div class="field"><label>الموضوع / العنوان</label><input id="p_title" value="${p?escAttr(p.title):''}" placeholder="مثلاً: أكتر ٥ أخطاء في الـ Tenses"></div>
+    <div class="two">
+      <div class="field"><label>اليوم / التاريخ</label><input type="date" id="p_date" value="${p?(p.pub_date||''):(presetDate||'')}"></div>
+      <div class="field"><label>الحالة</label><select id="p_status">${STATUSES.map(s=>`<option value="${s.id}" ${p&&p.status===s.id?'selected':''}>${s.name}</option>`).join('')}</select></div>
+    </div>
+    <div class="two">
+      <div class="field"><label>المنصة</label><select id="p_platform"><option value="">—</option>${PLATFORMS.map(x=>`<option value="${x.id}" ${p&&p.platform===x.id?'selected':''}>${x.name}</option>`).join('')}</select></div>
+      <div class="field"><label>نوع المحتوى</label><select id="p_type"><option value="">—</option>${TYPES.map(x=>`<option ${p&&p.content_type===x?'selected':''}>${x}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label>المرحلة التسويقية</label><div class="seg stage-seg" id="p_stage">
+      ${STAGES.map(s=>`<button data-st="${s.id}" class="${p&&p.stage===s.id?'on':''}" style="${p&&p.stage===s.id?`background:${s.hex}`:''}">${s.name}</button>`).join('')}</div>
+      <div id="stageDesc" style="font-size:11.5px;color:var(--faint);margin-top:6px">${p&&p.stage?S(p.stage).desc:'اختار مرحلة من رحلة الطالب'}</div></div>
+    <div class="field"><label>الهدف التسويقي</label><input id="p_goal" value="${p?escAttr(p.goal||''):''}" placeholder="مثلاً: إثبات جودة الشرح وبناء الثقة"></div>
+    <div class="field"><label>لينك البوست (اختياري)</label><input id="p_link" value="${p?escAttr(p.post_link||''):''}" placeholder="https://…" dir="ltr" style="text-align:left"></div>
+    <div class="field"><label>الكابشن (اختياري)</label><textarea id="p_caption" placeholder="نص البوست…">${p?esc(p.caption||''):''}</textarea></div>
+    ${p?`<div class="field"><label>المتابعة والتعليقات</label><div class="comments" id="p_comments">${cmts.length?cmts.map(c=>`<div class="cmt"><div class="h"><b>${esc(U(c.author_id).name)}</b><span>${new Date(c.created_at).toLocaleDateString('ar-EG')}</span></div>${esc(c.text)}</div>`).join(''):'<div style="color:var(--faint);font-size:12.5px">مفيش تعليقات</div>'}</div>
+    <div style="display:flex;gap:8px;margin-top:10px"><input id="p_newc" placeholder="اكتب ملاحظة…" style="flex:1;border:1px solid var(--line2);border-radius:11px;padding:10px 12px;background:var(--raised)"><button class="btn" id="p_addc">إضافة</button></div></div>`:''}`;
+
+  let stage=p?p.stage:null;
+  $('p_stage').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    stage=b.dataset.st;const s=S(stage);
+    $('p_stage').querySelectorAll('button').forEach(x=>{x.classList.remove('on');x.style.background='';});
+    b.classList.add('on');b.style.background=s.hex;
+    $('stageDesc').textContent=s.desc;
+  });
+
+  let acts=`<button class="btn primary" id="p_save">${p?'حفظ':'إضافة'}</button>`;
+  if(p)acts+=`<button class="danger-link" id="p_del" style="margin-inline-start:auto">مسح البوست</button>`;
+  $('mFoot').innerHTML=acts;
+
+  if(p){
+    const addc=async()=>{const v=val('p_newc').trim();if(!v)return;
+      const {error}=await sb.from('comments').insert({post_id:p.id,author_id:ME.id,text:v});
+      if(error)return toast(error.message,true);await reload();openPost(p.id);};
+    $('p_addc').onclick=addc;
+    $('p_newc').addEventListener('keydown',e=>{if(e.key==='Enter')addc();});
+  }
+
+  $('p_save').onclick=async()=>{
+    const title=val('p_title').trim();if(!title)return toast('اكتب الموضوع',true);
+    const data={title,pub_date:val('p_date')||null,platform:val('p_platform')||null,content_type:val('p_type')||null,
+      stage:stage||null,goal:val('p_goal').trim()||null,status:val('p_status'),post_link:normUrl(val('p_link'))||null,caption:val('p_caption').trim()||null};
+    let error;
+    if(p)({error}=await sb.from('posts').update(data).eq('id',p.id));
+    else ({error}=await sb.from('posts').insert({...data,created_by:ME.id}));
+    if(error)return toast(error.message,true);
+    closeModal();await reload();render();toast(p?'اتحفظ':'اتضاف البوست');
+  };
+  if(p)$('p_del').onclick=async()=>{if(confirm('متأكد تمسح البوست؟')){await sb.from('posts').delete().eq('id',p.id);closeModal();await reload();render();toast('اتمسح');}};
+  $('overlay').classList.add('show');
+}
+function closeModal(){$('overlay').classList.remove('show');}
+
+/* ---------- photo ---------- */
+async function uploadAvatar(file){
+  if(!file)return null;
+  if(file.size>3*1024*1024){toast('الصورة كبيرة (أقصى ٣ ميجا)',true);return null;}
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
+  const path=`user-${ME.id}-${Date.now()}.${ext}`;
+  const {error}=await sb.storage.from('avatars').upload(path,file,{upsert:true});
+  if(error){toast(error.message,true);return null;}
+  return sb.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+}
+function changeMyPhoto(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=async()=>{const f=inp.files[0];if(!f)return;toast('بترفع…');
+    const url=await uploadAvatar(f);if(!url)return;
+    await sb.from('profiles').update({avatar_url:url}).eq('id',ME.id);
+    ME.avatar_url=url;await reload();render();toast('اتغيّرت صورتك');};
+  inp.click();
+}
+
+/* ---------- WIRE ---------- */
+function wire(){
+  $('addBtn').onclick=()=>openPost(null, tab==='week'?ymd(new Date()):null);
+  $('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload();};
+  $('meAva').onclick=changeMyPhoto;
+  $('mClose').onclick=closeModal;
+  $('overlay').onclick=e=>{if(e.target.id==='overlay')closeModal();};
+  $('tabWeek').onclick=()=>{tab='week';render();};
+  $('tabAll').onclick=()=>{tab='all';render();};
+  $('tabFunnel').onclick=()=>{tab='funnel';render();};
+  // delegated handlers re-bound each render via render(); add week nav + stage filter here through document
+  document.addEventListener('click',e=>{
+    const st=e.target.closest('[data-stage]'); if(st){stageFilter=st.dataset.stage||null;render();return;}
+    if(e.target.id==='wPrev'){weekOffset++;render();}
+    if(e.target.id==='wNext'){weekOffset--;render();}
+    if(e.target.id==='wToday'){weekOffset=0;render();}
+  });
+}
+
+/* ---------- BOOT ---------- */
+$('au_go').onclick=doAuth;
+$('au_pass').addEventListener('keydown',e=>{if(e.key==='Enter')doAuth();});
+setSignUp(false);
+sb.auth.onAuthStateChange((ev,session)=>{ if(session&&$('app').classList.contains('hidden')) enterApp(); });
+(async()=>{const {data:{session}}=await sb.auth.getSession(); if(session) enterApp();})();
+</script>
+</body>
+</html>
