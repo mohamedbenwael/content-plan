@@ -187,6 +187,7 @@
       <button id="tabWeek" class="on">📅 خطة الأسبوع</button>
       <button id="tabAll">🗂 كل البوستات</button>
       <button id="tabFunnel">🎯 حسب المرحلة</button>
+      <button id="tabCmp">📣 الكامبينات</button>
     </div>
     <div id="main"></div>
   </div>
@@ -221,7 +222,7 @@ const STAGES=[
 const STATUSES=[{id:'idea',name:'فكرة',color:'#9AA8C0'},{id:'doing',name:'بيتعمل',color:'#2E7BE0'},{id:'ready',name:'جاهز',color:'#1FA971'},{id:'published',name:'اتنشر',color:'#15233F'}];
 const DAYS=['الأحد','الاتنين','التلات','الأربع','الخميس','الجمعة','السبت'];
 
-let ME=null, PROFILES=[], POSTS=[], COMMENTS=[];
+let ME=null, PROFILES=[], POSTS=[], COMMENTS=[], CAMPAIGNS=[];
 let tab='week', weekOffset=0, stageFilter=null, signUp=false;
 
 const S=id=>STAGES.find(x=>x.id===id);
@@ -263,13 +264,15 @@ async function doAuth(){
 
 /* ---------- DATA ---------- */
 async function reload(){
-  const [p,po,c]=await Promise.all([
+  const [p,po,c,cp]=await Promise.all([
     sb.from('profiles').select('*'),
     sb.from('posts').select('*').order('pub_date',{ascending:true}),
     sb.from('comments').select('*').order('created_at',{ascending:true}),
+    sb.from('campaigns').select('*').order('created_at',{ascending:false}),
   ]);
-  PROFILES=p.data||[]; POSTS=po.data||[]; COMMENTS=c.data||[];
+  PROFILES=p.data||[]; POSTS=po.data||[]; COMMENTS=c.data||[]; CAMPAIGNS=cp.data||[];
 }
+const CMP=id=>CAMPAIGNS.find(x=>x.id===id);
 async function enterApp(){
   $('auth').classList.add('hidden'); $('loading').classList.remove('hidden');
   const {data:{user}}=await sb.auth.getUser();
@@ -289,12 +292,15 @@ function render(){
   $('tabWeek').classList.toggle('on',tab==='week');
   $('tabAll').classList.toggle('on',tab==='all');
   $('tabFunnel').classList.toggle('on',tab==='funnel');
+  $('tabCmp').classList.toggle('on',tab==='cmp');
   const m=$('main');
   if(tab==='week')m.innerHTML=weekView();
   else if(tab==='all')m.innerHTML=allView();
-  else m.innerHTML=funnelView();
+  else if(tab==='funnel')m.innerHTML=funnelView();
+  else m.innerHTML=campaignsView();
   m.querySelectorAll('[data-post]').forEach(el=>el.onclick=()=>openPost(el.dataset.post));
   m.querySelectorAll('[data-add]').forEach(el=>el.onclick=e=>{e.stopPropagation();openPost(null,el.dataset.add);});
+  m.querySelectorAll('[data-cmp]').forEach(el=>el.onclick=()=>openCampaign(el.dataset.cmp));
 }
 
 function stageChip(id){const s=S(id);return s?`<span class="chip stage" style="background:${s.hex}">${s.name}</span>`:'';}
@@ -309,6 +315,7 @@ function postRow(p){
         ${p.content_type?`<span class="chip">${esc(p.content_type)}</span>`:''}
         ${p.stage?stageChip(p.stage):''}
         ${p.goal?`<span class="chip goal">🎯 ${esc(p.goal)}</span>`:''}
+        ${p.campaign_id&&CMP(p.campaign_id)?`<span class="chip" style="background:${CMP(p.campaign_id).color||'#888'}22;color:${CMP(p.campaign_id).color||'#888'}">📣 ${esc(CMP(p.campaign_id).name)}</span>`:''}
       </div></div>
     ${statusChip(p.status)}</div>`;
 }
@@ -362,6 +369,60 @@ function funnelLegend(){
     ${stageFilter?'<span class="fstage" data-stage="" style="background:var(--raised2)">✕ الكل</span>':''}</div>`;
 }
 
+/* CAMPAIGNS */
+function campaignsView(){
+  const fmt=d=>d?new Date(d+'T00:00:00').toLocaleDateString('ar-EG',{day:'numeric',month:'short'}):'—';
+  const cards=CAMPAIGNS.map(c=>{
+    const ps=POSTS.filter(p=>p.campaign_id===c.id);
+    const pub=ps.filter(p=>p.status==='published').length;
+    return `<div class="day" style="cursor:pointer" data-cmp="${c.id}">
+      <div class="day-h" style="border-inline-start:5px solid ${c.color||'var(--gold)'}">
+        <span class="dname">${esc(c.name)}</span>
+        <span class="ddate">${fmt(c.start_date)} — ${fmt(c.end_date)}</span>
+        <span style="margin-inline-start:auto;font-size:11.5px;color:var(--muted)">${ps.length} بوست · ${pub} اتنشر</span></div>
+      <div class="day-body">
+        ${c.goal?`<div style="font-size:13px;color:var(--muted)">🎯 ${esc(c.goal)}</div>`:''}
+        ${ps.length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">${ps.slice(0,6).map(p=>`<span class="chip">${esc(p.title)}</span>`).join('')}${ps.length>6?`<span class="chip">+${ps.length-6}</span>`:''}</div>`:'<div class="day-empty">لسه مفيش بوستات في الحملة دي</div>'}
+      </div></div>`;
+  }).join('');
+  return `<div class="head"><div><div class="ttl">الكامبينات</div><div class="sb">حملاتك التسويقية — كل حملة وبوستاتها</div></div>
+      <button class="btn primary" onclick="openCampaign(null)">＋ كامبين جديد</button></div>
+    ${CAMPAIGNS.length?cards:'<div class="empty"><div class="big">📣</div>لسه مفيش كامبينات. دوس «＋ كامبين جديد» وابدأ أول حملة.</div>'}`;
+}
+window.openCampaign=function(id){
+  const c=id?CMP(id):null;
+  const ps=c?POSTS.filter(p=>p.campaign_id===c.id):[];
+  $('mTitle').textContent=c?'تفاصيل الكامبين':'كامبين جديد';
+  const palette=['#E0A93B','#2563EB','#0EA5A4','#E5533C','#8B5CF6','#15233F'];
+  $('mBody').innerHTML=`
+    <div class="field"><label>اسم الحملة</label><input id="c_name" value="${c?escAttr(c.name):''}" placeholder="مثلاً: حملة بداية السنة"></div>
+    <div class="field"><label>الهدف العام للحملة</label><textarea id="c_goal" placeholder="إيه اللي عايزين نحققه من الحملة دي…">${c?esc(c.goal||''):''}</textarea></div>
+    <div class="two">
+      <div class="field"><label>تاريخ البداية</label><input type="date" id="c_start" value="${c?(c.start_date||''):''}"></div>
+      <div class="field"><label>تاريخ النهاية</label><input type="date" id="c_end" value="${c?(c.end_date||''):''}"></div>
+    </div>
+    <div class="field"><label>لون مميّز</label><div class="seg" id="c_color">
+      ${palette.map(col=>`<button data-col="${col}" class="${(c?c.color:palette[0])===col?'on':''}" style="background:${col};color:#fff;border-color:transparent;flex:none;width:38px;height:34px">${(c?c.color:palette[0])===col?'✓':''}</button>`).join('')}</div></div>
+    ${c?`<div class="field"><label>بوستات الحملة (${ps.length})</label>${ps.length?ps.map(p=>`<div class="post" data-pinmodal="${p.id}" style="margin-bottom:8px"><span class="stage-rail" style="background:${S(p.stage)?.hex||'var(--line2)'}"></span><div class="main"><div class="pt">${esc(p.title)}</div></div>${statusChip(p.status)}</div>`).join(''):'<div class="day-empty">مفيش بوستات — افتح أي بوست واختار الحملة دي</div>'}</div>`:''}`;
+  let color=c?c.color:palette[0];
+  $('c_color').querySelectorAll('button').forEach(b=>b.onclick=()=>{color=b.dataset.col;$('c_color').querySelectorAll('button').forEach(x=>{x.classList.remove('on');x.textContent='';});b.classList.add('on');b.textContent='✓';});
+  let acts=`<button class="btn primary" id="c_save">${c?'حفظ':'إضافة'}</button>`;
+  if(c)acts+=`<button class="danger-link" id="c_del" style="margin-inline-start:auto">مسح الكامبين</button>`;
+  $('mFoot').innerHTML=acts;
+  $('c_save').onclick=async()=>{
+    const name=val('c_name').trim();if(!name)return toast('اكتب اسم الحملة',true);
+    const data={name,goal:val('c_goal').trim()||null,start_date:val('c_start')||null,end_date:val('c_end')||null,color};
+    let error;
+    if(c)({error}=await sb.from('campaigns').update(data).eq('id',c.id));
+    else ({error}=await sb.from('campaigns').insert({...data,created_by:ME.id}));
+    if(error)return toast(error.message,true);
+    closeModal();await reload();render();toast(c?'اتحفظ':'اتضاف الكامبين');
+  };
+  if(c)$('c_del').onclick=async()=>{if(confirm('مسح الكامبين؟ (البوستات مش هتتمسح، بس هتتفك من الحملة)')){await sb.from('campaigns').delete().eq('id',c.id);closeModal();await reload();render();toast('اتمسح');}};
+  $('mBody').querySelectorAll('[data-pinmodal]').forEach(el=>el.onclick=()=>openPost(el.dataset.pinmodal));
+  $('overlay').classList.add('show');
+};
+
 /* ---------- POST MODAL ---------- */
 function openPost(id,presetDate){
   const p=id?POSTS.find(x=>x.id===id):null;
@@ -380,6 +441,7 @@ function openPost(id,presetDate){
     <div class="field"><label>المرحلة التسويقية</label><div class="seg stage-seg" id="p_stage">
       ${STAGES.map(s=>`<button data-st="${s.id}" class="${p&&p.stage===s.id?'on':''}" style="${p&&p.stage===s.id?`background:${s.hex}`:''}">${s.name}</button>`).join('')}</div>
       <div id="stageDesc" style="font-size:11.5px;color:var(--faint);margin-top:6px">${p&&p.stage?S(p.stage).desc:'اختار مرحلة من رحلة الطالب'}</div></div>
+    <div class="field"><label>الكامبين (اختياري)</label><select id="p_campaign"><option value="">— من غير حملة —</option>${CAMPAIGNS.map(cm=>`<option value="${cm.id}" ${p&&p.campaign_id===cm.id?'selected':''}>${esc(cm.name)}</option>`).join('')}</select></div>
     <div class="field"><label>الهدف التسويقي</label><input id="p_goal" value="${p?escAttr(p.goal||''):''}" placeholder="مثلاً: إثبات جودة الشرح وبناء الثقة"></div>
     <div class="field"><label>لينك البوست (اختياري)</label><input id="p_link" value="${p?escAttr(p.post_link||''):''}" placeholder="https://…" dir="ltr" style="text-align:left"></div>
     <div class="field"><label>الكابشن (اختياري)</label><textarea id="p_caption" placeholder="نص البوست…">${p?esc(p.caption||''):''}</textarea></div>
@@ -409,7 +471,8 @@ function openPost(id,presetDate){
   $('p_save').onclick=async()=>{
     const title=val('p_title').trim();if(!title)return toast('اكتب الموضوع',true);
     const data={title,pub_date:val('p_date')||null,platform:val('p_platform')||null,content_type:val('p_type')||null,
-      stage:stage||null,goal:val('p_goal').trim()||null,status:val('p_status'),post_link:normUrl(val('p_link'))||null,caption:val('p_caption').trim()||null};
+      stage:stage||null,goal:val('p_goal').trim()||null,status:val('p_status'),post_link:normUrl(val('p_link'))||null,caption:val('p_caption').trim()||null,
+      campaign_id:val('p_campaign')||null};
     let error;
     if(p)({error}=await sb.from('posts').update(data).eq('id',p.id));
     else ({error}=await sb.from('posts').insert({...data,created_by:ME.id}));
@@ -450,6 +513,7 @@ function wire(){
   $('tabWeek').onclick=()=>{tab='week';render();};
   $('tabAll').onclick=()=>{tab='all';render();};
   $('tabFunnel').onclick=()=>{tab='funnel';render();};
+  $('tabCmp').onclick=()=>{tab='cmp';render();};
   // delegated handlers re-bound each render via render(); add week nav + stage filter here through document
   document.addEventListener('click',e=>{
     const st=e.target.closest('[data-stage]'); if(st){stageFilter=st.dataset.stage||null;render();return;}
