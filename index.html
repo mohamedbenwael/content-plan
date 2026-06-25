@@ -16,7 +16,7 @@
     --bg:#F4F6F9; --panel:#FFFFFF; --raised:#F7F9FC; --raised2:#EEF2F8;
     --txt:#16213A; --muted:#5C6B85; --faint:#9AA8C0; --line:#E6EBF3; --line2:#D9E1EE;
     --idea:#9AA8C0; --doing:#2E7BE0; --ready:#1FA971; --pub:#15233F;
-    --aware:#2563EB; --interest:#0EA5A4; --decision:#E0A93B; --action:#E5533C; --retention:#8B5CF6;
+    --aware:#2563EB; --teaser:#EC4899; --interest:#0EA5A4; --decision:#E0A93B; --action:#E5533C; --retention:#8B5CF6;
     --danger:#E5533C; --danger-dim:#FCE9E5;
     --radius:16px; --shadow:0 10px 34px rgba(21,35,63,.10);
   }
@@ -210,10 +210,11 @@ const SUPABASE_KEY = 'sb_publishable_T8H5XdsYu52t2fh4i0-edA_10coce_u';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const PLATFORMS=[{id:'facebook',name:'فيسبوك'},{id:'instagram',name:'إنستجرام'},{id:'tiktok',name:'تيك توك'},{id:'youtube',name:'يوتيوب'}];
-const TYPES=['ريلز','فيديو شرح','كاروسيل','إعلان','بوست','ستوري'];
+const PLATFORMS=[{id:'facebook',name:'فيسبوك'},{id:'tiktok',name:'تيك توك'},{id:'youtube',name:'يوتيوب'}];
+const TYPES=['ريلز','ديزاين','كاروسيل','برومو'];
 const STAGES=[
   {id:'awareness', name:'وعي',    color:'var(--aware)',     hex:'#2563EB', desc:'الطالب يعرف إن عنده مشكلة'},
+  {id:'teaser',    name:'تشويق',  color:'var(--teaser)',    hex:'#EC4899', desc:'إثارة الفضول والترقّب قبل الإطلاق'},
   {id:'interest',  name:'اهتمام', color:'var(--interest)',  hex:'#0EA5A4', desc:'يتفاعل، يتابع، يحفظ'},
   {id:'decision',  name:'قرار',   color:'var(--decision)',  hex:'#E0A93B', desc:'يقتنع ويقارن'},
   {id:'action',    name:'فعل',    color:'var(--action)',    hex:'#E5533C', desc:'يسجّل / يحجز / يشتري'},
@@ -245,20 +246,27 @@ function setSignUp(on){signUp=on;
   $('au_switch').innerHTML=on?'عندك حساب؟ <b>سجّل دخول</b>':'لسه معندكش حساب؟ <b>اعمل حساب</b>';
   $('au_switch').querySelector('b').onclick=()=>setSignUp(!on);
 }
-function authErr(m){$('au_err').textContent=m||'';}
+function authErr(m){const e=$('au_err');e.style.color='var(--danger)';e.textContent=m||'';}
 async function doAuth(){
   const email=val('au_email').trim(), pass=val('au_pass');
   if(!email||!pass)return authErr('اكتب الإيميل وكلمة السر');
   authErr('');
   if(signUp){
     const name=val('au_name').trim()||email.split('@')[0];
-    const {error}=await sb.auth.signUp({email,password:pass,options:{data:{name}}});
+    const {data,error}=await sb.auth.signUp({email,password:pass,options:{data:{name}}});
     if(error)return authErr(error.message);
-    toast('اتعمل الحساب، سجّل دخول');
-    setSignUp(false);
+    // لو محتاج تأكيد إيميل (مفيش جلسة رجعت)
+    if(!data.session){
+      $('au_err').style.color='var(--ready)';
+      $('au_err').innerHTML='✅ اتعمل حسابك! بعتنالك رسالة تأكيد على إيميلك — افتحها واضغط الرابط، وبعدها سجّل دخول.';
+      setSignUp(false);
+      return;
+    }
+    // لو الجلسة رجعت (التأكيد مقفول) → دخول مباشر
+    toast('اتعمل حسابك، أهلاً بيك!');
   }else{
     const {error}=await sb.auth.signInWithPassword({email,password:pass});
-    if(error)return authErr('بيانات الدخول غلط');
+    if(error)return authErr('الدخول مش متاح — اتأكد من الإيميل وكلمة السر، ولو لسه ماأكدتش حسابك من الإيميل أكّده الأول.');
   }
 }
 
@@ -305,13 +313,23 @@ function render(){
 
 function stageChip(id){const s=S(id);return s?`<span class="chip stage" style="background:${s.hex}">${s.name}</span>`:'';}
 function statusChip(id){const s=ST(id);return `<span class="stt" style="background:${s.color}22;color:${s.color}">${s.name}</span>`;}
+function postState(p){
+  const today=ymd(new Date());
+  if(p.status==='published') return 'pub';
+  if(p.pub_date && p.pub_date<today) return 'late';
+  if(p.pub_date===today) return 'today';
+  return 'normal';
+}
+const STATE_TINT={late:'#FCEBE8',today:'#E8F0FD',pub:'#E5F6EE',normal:'var(--panel)'};
+const STATE_BORDER={late:'#F3C0B6',today:'#BcD4F5',pub:'#B6E6CC',normal:'var(--line)'};
 function postRow(p){
   const s=S(p.stage);
-  return `<div class="post" data-post="${p.id}">
+  const stt=postState(p);
+  return `<div class="post" data-post="${p.id}" style="background:${STATE_TINT[stt]};border-color:${STATE_BORDER[stt]||'var(--line)'}">
     <span class="stage-rail" style="background:${s?s.hex:'var(--line2)'}"></span>
     <div class="main"><div class="pt">${esc(p.title)}</div>
       <div class="pmeta">
-        ${p.platform?`<span class="chip">${PL(p.platform)?.name||p.platform}</span>`:''}
+        ${(p.platforms&&p.platforms.length?p.platforms:(p.platform?[p.platform]:[])).map(pid=>`<span class="chip">${PL(pid)?.name||pid}</span>`).join('')}
         ${p.content_type?`<span class="chip">${esc(p.content_type)}</span>`:''}
         ${p.stage?stageChip(p.stage):''}
         ${p.goal?`<span class="chip goal">🎯 ${esc(p.goal)}</span>`:''}
@@ -338,8 +356,9 @@ function weekView(){
       <div class="day-body">${ps.length?ps.map(postRow).join(''):'<div class="day-empty">مفيش بوستات لليوم ده</div>'}</div></div>`;
   }
   return `<div class="head"><div><div class="ttl">خطة الأسبوع</div><div class="sb">بوستات كل يوم — دوس ＋ تضيف بوست في يومه</div></div></div>
+    ${stateLegend()}
     ${funnelLegend()}
-    <div class="week-nav"><button id="wPrev">›</button><span class="label">${fmt(start)} — ${fmt(end)}</span><button id="wNext">‹</button>
+    <div class="week-nav"><button id="wPrev" style="width:auto;padding:0 14px;font-size:13px">‹ الأسبوع السابق</button><span class="label">${fmt(start)} — ${fmt(end)}</span><button id="wNext" style="width:auto;padding:0 14px;font-size:13px">الأسبوع التالي ›</button>
       ${weekOffset!==0?'<button id="wToday" style="width:auto;padding:0 14px;font-size:13px">النهارده</button>':''}</div>
     ${days}`;
 }
@@ -367,6 +386,10 @@ function funnelView(){
 function funnelLegend(){
   return `<div class="funnel">${STAGES.map(s=>`<span class="fstage ${stageFilter&&stageFilter!==s.id?'off':''}" data-stage="${s.id}"><span class="dot" style="background:${s.hex}"></span>${s.name}</span>`).join('')}
     ${stageFilter?'<span class="fstage" data-stage="" style="background:var(--raised2)">✕ الكل</span>':''}</div>`;
+}
+function stateLegend(){
+  const items=[['#FCEBE8','#F3C0B6','متأخر'],['#E8F0FD','#BCD4F5','النهارده'],['#E5F6EE','#B6E6CC','اتنشر'],['var(--panel)','var(--line2)','عادي']];
+  return `<div class="funnel" style="margin-bottom:14px">${items.map(([bg,bd,l])=>`<span class="fstage" style="cursor:default;background:${bg};border-color:${bd}">${l}</span>`).join('')}</div>`;
 }
 
 /* CAMPAIGNS */
@@ -434,10 +457,9 @@ function openPost(id,presetDate){
       <div class="field"><label>اليوم / التاريخ</label><input type="date" id="p_date" value="${p?(p.pub_date||''):(presetDate||'')}"></div>
       <div class="field"><label>الحالة</label><select id="p_status">${STATUSES.map(s=>`<option value="${s.id}" ${p&&p.status===s.id?'selected':''}>${s.name}</option>`).join('')}</select></div>
     </div>
-    <div class="two">
-      <div class="field"><label>المنصة</label><select id="p_platform"><option value="">—</option>${PLATFORMS.map(x=>`<option value="${x.id}" ${p&&p.platform===x.id?'selected':''}>${x.name}</option>`).join('')}</select></div>
+    <div class="field"><label>المنصات (تقدر تختار أكتر من واحدة)</label><div class="seg" id="p_platforms">
+      ${PLATFORMS.map(x=>{const on=p&&(p.platforms||[]).includes(x.id);return `<button type="button" data-pl="${x.id}" class="${on?'on':''}" style="${on?'background:var(--brand);border-color:var(--brand)':''}">${x.name}</button>`;}).join('')}</div></div>
       <div class="field"><label>نوع المحتوى</label><select id="p_type"><option value="">—</option>${TYPES.map(x=>`<option ${p&&p.content_type===x?'selected':''}>${x}</option>`).join('')}</select></div>
-    </div>
     <div class="field"><label>المرحلة التسويقية</label><div class="seg stage-seg" id="p_stage">
       ${STAGES.map(s=>`<button data-st="${s.id}" class="${p&&p.stage===s.id?'on':''}" style="${p&&p.stage===s.id?`background:${s.hex}`:''}">${s.name}</button>`).join('')}</div>
       <div id="stageDesc" style="font-size:11.5px;color:var(--faint);margin-top:6px">${p&&p.stage?S(p.stage).desc:'اختار مرحلة من رحلة الطالب'}</div></div>
@@ -449,7 +471,18 @@ function openPost(id,presetDate){
     <div style="display:flex;gap:8px;margin-top:10px"><input id="p_newc" placeholder="اكتب ملاحظة…" style="flex:1;border:1px solid var(--line2);border-radius:11px;padding:10px 12px;background:var(--raised)"><button class="btn" id="p_addc">إضافة</button></div></div>`:''}`;
 
   let stage=p?p.stage:null;
+  let platforms=p?(p.platforms||[]).slice():[];
+  $('p_platforms').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.pl;
+    if(platforms.includes(id)){platforms=platforms.filter(x=>x!==id);b.classList.remove('on');b.style.background='';b.style.borderColor='';}
+    else{platforms.push(id);b.classList.add('on');b.style.background='var(--brand)';b.style.borderColor='var(--brand)';}
+  });
   $('p_stage').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    if(stage===b.dataset.st){ // دوست على المختار → شيله
+      stage=null;b.classList.remove('on');b.style.background='';
+      $('stageDesc').textContent='اختار مرحلة من رحلة الطالب (أو سيبها فاضية)';
+      return;
+    }
     stage=b.dataset.st;const s=S(stage);
     $('p_stage').querySelectorAll('button').forEach(x=>{x.classList.remove('on');x.style.background='';});
     b.classList.add('on');b.style.background=s.hex;
@@ -470,7 +503,7 @@ function openPost(id,presetDate){
 
   $('p_save').onclick=async()=>{
     const title=val('p_title').trim();if(!title)return toast('اكتب الموضوع',true);
-    const data={title,pub_date:val('p_date')||null,platform:val('p_platform')||null,content_type:val('p_type')||null,
+    const data={title,pub_date:val('p_date')||null,platforms:platforms.length?platforms:null,platform:platforms[0]||null,content_type:val('p_type')||null,
       stage:stage||null,goal:val('p_goal').trim()||null,status:val('p_status'),post_link:normUrl(val('p_link'))||null,caption:val('p_caption').trim()||null,
       campaign_id:val('p_campaign')||null};
     let error;
@@ -517,8 +550,8 @@ function wire(){
   // delegated handlers re-bound each render via render(); add week nav + stage filter here through document
   document.addEventListener('click',e=>{
     const st=e.target.closest('[data-stage]'); if(st){stageFilter=st.dataset.stage||null;render();return;}
-    if(e.target.id==='wPrev'){weekOffset++;render();}
-    if(e.target.id==='wNext'){weekOffset--;render();}
+    if(e.target.id==='wPrev'){weekOffset--;render();}
+    if(e.target.id==='wNext'){weekOffset++;render();}
     if(e.target.id==='wToday'){weekOffset=0;render();}
   });
 }
