@@ -144,11 +144,33 @@
 
   @media(max-width:820px){.grid{grid-template-columns:1fr 1fr}}
   @media(max-width:600px){
-    .wrap{padding:16px 14px 50px}.grid{grid-template-columns:1fr}
-    .topbar{padding:10px 14px}.topbar .sub{display:none}
-    .top-btn .lbl{display:none}.top-btn{padding:0 12px}
-    .two{grid-template-columns:1fr}.head .ttl{font-size:20px}
-    .tabs{width:100%}.tabs button{flex:1}
+    .wrap{padding:14px 12px 60px}.grid{grid-template-columns:1fr}
+    .topbar{padding:10px 12px;gap:9px}.topbar .sub{display:none}.topbar h1{font-size:16px}
+    .topbar .logo,.topbar .logo img{width:34px;height:34px}
+    .top-btn .lbl{display:none}.top-btn{padding:0 13px;height:44px}
+    .me-ava{width:40px;height:40px}
+    .two{grid-template-columns:1fr}.head .ttl{font-size:19px}
+    /* تابات بتتمرّر أفقي بدل ما تتزحم */
+    .tabs{display:flex;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .tabs::-webkit-scrollbar{display:none}
+    .tabs button{flex:0 0 auto;white-space:nowrap;padding:10px 14px;font-size:13.5px}
+    /* الأيام والبوستات أوضح وألمس أسهل */
+    .day-h{padding:13px 14px}.day-h .add{width:34px;height:34px;font-size:20px}
+    .day-body{padding:10px 12px}
+    .post{padding:13px 13px;gap:10px}
+    .post .pt{font-size:15px}
+    .post .pmeta{gap:6px}
+    .week-nav{flex-wrap:wrap;gap:8px}
+    .week-nav button{height:40px}
+    .week-nav .label{font-size:14px;order:-1;width:100%;text-align:center;margin-bottom:2px}
+    /* المودال يملا الشاشة من تحت */
+    .overlay{padding:0;align-items:flex-end}
+    .modal{width:100%;max-width:100%;max-height:94vh;border-radius:20px 20px 0 0}
+    .mb{padding:16px 16px;gap:12px}
+    .field input,.field select,.field textarea{padding:13px;font-size:15px}
+    .seg button{padding:11px 8px}
+    .btn{height:48px;flex:1}
+    .mf{padding:14px 16px}
   }
 </style>
 </head>
@@ -356,8 +378,6 @@ function weekView(){
       <div class="day-body">${ps.length?ps.map(postRow).join(''):'<div class="day-empty">مفيش بوستات لليوم ده</div>'}</div></div>`;
   }
   return `<div class="head"><div><div class="ttl">خطة الأسبوع</div><div class="sb">بوستات كل يوم — دوس ＋ تضيف بوست في يومه</div></div></div>
-    ${stateLegend()}
-    ${funnelLegend()}
     <div class="week-nav"><button id="wPrev" style="width:auto;padding:0 14px;font-size:13px">‹ الأسبوع السابق</button><span class="label">${fmt(start)} — ${fmt(end)}</span><button id="wNext" style="width:auto;padding:0 14px;font-size:13px">الأسبوع التالي ›</button>
       ${weekOffset!==0?'<button id="wToday" style="width:auto;padding:0 14px;font-size:13px">النهارده</button>':''}</div>
     ${days}`;
@@ -369,7 +389,7 @@ function allView(){
   const cols=STATUSES.map(s=>{const items=ps.filter(p=>p.status===s.id);
     return `<div class="col"><div class="col-h"><span style="width:10px;height:10px;border-radius:50%;background:${s.color};display:inline-block"></span>${s.name}<span class="n">${items.length}</span></div>
       ${items.map(postRow).join('')||'<div class="day-empty">—</div>'}</div>`;}).join('');
-  return `<div class="head"><div><div class="ttl">كل البوستات</div><div class="sb">مقسّمة بالحالة</div></div></div>${funnelLegend()}<div class="grid">${cols}</div>`;
+  return `<div class="head"><div><div class="ttl">كل البوستات</div><div class="sb">مقسّمة بالحالة</div></div></div><div class="grid">${cols}</div>`;
 }
 
 /* FUNNEL — by stage */
