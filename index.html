@@ -201,9 +201,11 @@
     <div><h1>خطة المحتوى</h1><div class="sub">A to Z — متابعة مع المستر</div></div>
     <div class="spacer"></div>
     <button class="top-btn gold" id="addBtn"><span style="font-size:17px">＋</span><span class="lbl">بوست</span></button>
+    <button class="top-btn" id="bellBtn" style="position:relative">🔔<span id="nbadge" style="display:none;position:absolute;top:-4px;left:-4px;background:#FF4D4D;color:#fff;font-size:10px;font-weight:800;min-width:18px;height:18px;border-radius:20px;display:grid;place-items:center;padding:0 4px;border:2px solid var(--brand)">0</span></button>
     <div class="me-ava" id="meAva" title="صورتك"></div>
     <button class="top-btn" id="logoutBtn"><span class="lbl">خروج</span><span style="font-size:15px">⎋</span></button>
   </div>
+  <div id="notifPanel" style="display:none;position:fixed;top:62px;left:14px;width:330px;max-width:92vw;max-height:70vh;overflow-y:auto;background:var(--panel);border:1px solid var(--line2);border-radius:14px;box-shadow:var(--shadow);z-index:40;padding:8px"></div>
   <div class="wrap">
     <div class="tabs">
       <button id="tabWeek" class="on">📅 خطة الأسبوع</button>
@@ -245,7 +247,7 @@ const STAGES=[
 const STATUSES=[{id:'idea',name:'فكرة',color:'#9AA8C0'},{id:'doing',name:'بيتعمل',color:'#2E7BE0'},{id:'ready',name:'جاهز',color:'#1FA971'},{id:'published',name:'اتنشر',color:'#15233F'}];
 const DAYS=['الأحد','الاتنين','التلات','الأربع','الخميس','الجمعة','السبت'];
 
-let ME=null, PROFILES=[], POSTS=[], COMMENTS=[], CAMPAIGNS=[];
+let ME=null, PROFILES=[], POSTS=[], COMMENTS=[], CAMPAIGNS=[], NOTIFS=[];
 let tab='week', weekOffset=0, stageFilter=null, signUp=false;
 
 const S=id=>STAGES.find(x=>x.id===id);
@@ -260,6 +262,40 @@ function ymd(d){const z=new Date(d.getTime()-d.getTimezoneOffset()*60000);return
 function normUrl(u){u=(u||'').trim();if(!u)return'';if(!/^https?:\/\//.test(u))u='https://'+u;return u;}
 let toastT;function toast(m,bad){const t=$('toast');t.textContent=m;t.classList.toggle('bad',!!bad);t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2400);}
 function initials(n){return (n||'?').replace(/[()م.]/g,'').trim().split(' ')[0].slice(0,2);}
+
+/* ---------- notifications ---------- */
+async function notifyOthers(type,text,postId){
+  const others=PROFILES.filter(p=>p.id!==ME.id);
+  if(!others.length)return;
+  await sb.from('notifications').insert(others.map(o=>({user_id:o.id,actor_id:ME.id,type,text,post_id:postId||null})));
+}
+function renderBell(){
+  const unread=NOTIFS.filter(n=>!n.is_read).length;
+  const b=$('nbadge'); if(b){b.textContent=unread;b.style.display=unread?'grid':'none';}
+}
+function timeAgo(ts){const s=Math.floor((Date.now()-new Date(ts))/1000);
+  if(s<60)return'دلوقتي';if(s<3600)return Math.floor(s/60)+' د';if(s<86400)return Math.floor(s/3600)+' س';return Math.floor(s/86400)+' ي';}
+function toggleNotif(){
+  const p=$('notifPanel');
+  if(p.style.display==='block'){p.style.display='none';return;}
+  p.innerHTML = NOTIFS.length ? (
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px"><b style="font-size:13px">الإشعارات</b>${NOTIFS.some(n=>!n.is_read)?'<span style="font-size:11.5px;color:var(--gold);cursor:pointer" onclick="markAllRead()">تعليم الكل مقروء</span>':''}</div>`
+    + NOTIFS.map(n=>`<div onclick="openNotif('${n.id}','${n.post_id||''}')" style="display:flex;gap:10px;padding:11px 12px;border-radius:10px;cursor:pointer;${n.is_read?'':'background:#F0F4FB'}">
+        <span style="font-size:17px">${n.type==='status'?'📌':'💬'}</span>
+        <div><div style="font-size:13px;line-height:1.5">${esc(n.text)}</div><div style="font-size:10.5px;color:var(--faint);margin-top:3px">${timeAgo(n.created_at)}</div></div></div>`).join('')
+  ) : '<div style="padding:24px;text-align:center;color:var(--faint);font-size:13px">مفيش إشعارات</div>';
+  p.style.display='block';
+}
+window.openNotif=async function(id,postId){
+  const n=NOTIFS.find(x=>x.id===id);
+  if(n&&!n.is_read){await sb.from('notifications').update({is_read:true}).eq('id',id);n.is_read=true;renderBell();}
+  $('notifPanel').style.display='none';
+  if(postId)openPost(postId);
+};
+window.markAllRead=async function(){
+  await sb.from('notifications').update({is_read:true}).eq('user_id',ME.id).eq('is_read',false);
+  NOTIFS.forEach(n=>n.is_read=true);renderBell();$('notifPanel').style.display='none';
+};
 
 /* ---------- AUTH ---------- */
 function setSignUp(on){signUp=on;
@@ -294,16 +330,20 @@ async function doAuth(){
 
 /* ---------- DATA ---------- */
 async function reload(){
-  const [p,po,c,cp]=await Promise.all([
+  const [p,po,c,cp,nt]=await Promise.all([
     sb.from('profiles').select('*'),
     sb.from('posts').select('*').order('pub_date',{ascending:true}),
     sb.from('comments').select('*').order('created_at',{ascending:true}),
     sb.from('campaigns').select('*').order('created_at',{ascending:false}),
+    sb.from('notifications').select('*').order('created_at',{ascending:false}).limit(40),
   ]);
-  PROFILES=p.data||[]; POSTS=po.data||[]; COMMENTS=c.data||[]; CAMPAIGNS=cp.data||[];
+  PROFILES=p.data||[]; POSTS=po.data||[]; COMMENTS=c.data||[]; CAMPAIGNS=cp.data||[]; NOTIFS=nt.data||[];
 }
 const CMP=id=>CAMPAIGNS.find(x=>x.id===id);
+const canEdit=()=>ME && ME.role!=='viewer';
+let started=false;
 async function enterApp(){
+  if(started)return; started=true;
   $('auth').classList.add('hidden'); $('loading').classList.remove('hidden');
   const {data:{user}}=await sb.auth.getUser();
   let {data:prof}=await sb.from('profiles').select('*').eq('id',user.id).single();
@@ -311,6 +351,12 @@ async function enterApp(){
   ME=prof; await reload();
   $('loading').classList.add('hidden'); $('app').classList.remove('hidden');
   wire(); render();
+  // تحديث تلقائي كل ٢٠ ثانية (من غير ما يقطعك وإنت فاتح بوست)
+  setInterval(async()=>{
+    if($('overlay').classList.contains('show'))return; // مش بيحدّث وانت بتعدّل
+    if($('notifPanel').style.display==='block')return;
+    await reload(); render();
+  },20000);
 }
 
 /* ---------- RENDER ---------- */
@@ -319,6 +365,7 @@ function render(){
   const ma=$('meAva');
   if(ME.avatar_url){ma.innerHTML=`<img src="${escAttr(ME.avatar_url)}">`;}
   else{ma.textContent=initials(ME.name);}
+  renderBell();
   $('tabWeek').classList.toggle('on',tab==='week');
   $('tabAll').classList.toggle('on',tab==='all');
   $('tabFunnel').classList.toggle('on',tab==='funnel');
@@ -509,30 +556,54 @@ function openPost(id,presetDate){
     $('stageDesc').textContent=s.desc;
   });
 
-  let acts=`<button class="btn primary" id="p_save">${p?'حفظ':'إضافة'}</button>`;
-  if(p)acts+=`<button class="danger-link" id="p_del" style="margin-inline-start:auto">مسح البوست</button>`;
+  let acts=`<button class="btn primary" id="p_save">${p?(canEdit()?'حفظ':'تحديث الحالة'):'إضافة'}</button>`;
+  if(p&&canEdit())acts+=`<button class="danger-link" id="p_del" style="margin-inline-start:auto">مسح البوست</button>`;
   $('mFoot').innerHTML=acts;
+
+  // المتابع (viewer): يقدر يغيّر الحالة ويكتب ملاحظات بس — باقي الحقول مقفولة
+  if(p && !canEdit()){
+    ['p_title','p_date','p_platforms','p_type','p_stage','p_goal','p_link','p_caption','p_campaign'].forEach(idf=>{
+      const el=$(idf); if(!el)return;
+      el.querySelectorAll? el.querySelectorAll('button,input,select,textarea').forEach(x=>x.disabled=true):0;
+      if(el.tagName==='INPUT'||el.tagName==='SELECT'||el.tagName==='TEXTAREA')el.disabled=true;
+      el.style.opacity='.65';
+    });
+  }
 
   if(p){
     const addc=async()=>{const v=val('p_newc').trim();if(!v)return;
       const {error}=await sb.from('comments').insert({post_id:p.id,author_id:ME.id,text:v});
-      if(error)return toast(error.message,true);await reload();openPost(p.id);};
+      if(error)return toast(error.message,true);
+      await notifyOthers('comment',`${ME.name} كتب ملاحظة على «${p.title}»: ${v.slice(0,60)}`,p.id);
+      await reload();openPost(p.id);};
     $('p_addc').onclick=addc;
     $('p_newc').addEventListener('keydown',e=>{if(e.key==='Enter')addc();});
   }
 
   $('p_save').onclick=async()=>{
     const title=val('p_title').trim();if(!title)return toast('اكتب الموضوع',true);
+    let error;
+    if(p && !canEdit()){
+      // المتابع: يعدّل الحالة بس
+      const newStatus=val('p_status');
+      const changed=newStatus!==p.status;
+      ({error}=await sb.from('posts').update({status:newStatus}).eq('id',p.id));
+      if(error)return toast(error.message,true);
+      if(changed)await notifyOthers('status',`${ME.name} غيّر حالة «${p.title}» لـ «${ST(newStatus).name}»`,p.id);
+      closeModal();await reload();render();toast('اتحدّثت الحالة');
+      return;
+    }
     const data={title,pub_date:val('p_date')||null,platforms:platforms.length?platforms:null,platform:platforms[0]||null,content_type:val('p_type')||null,
       stage:stage||null,goal:val('p_goal').trim()||null,status:val('p_status'),post_link:normUrl(val('p_link'))||null,caption:val('p_caption').trim()||null,
       campaign_id:val('p_campaign')||null};
-    let error;
+    const statusChanged=p && p.status!==data.status;
     if(p)({error}=await sb.from('posts').update(data).eq('id',p.id));
     else ({error}=await sb.from('posts').insert({...data,created_by:ME.id}));
     if(error)return toast(error.message,true);
+    if(statusChanged)await notifyOthers('status',`${ME.name} غيّر حالة «${title}» لـ «${ST(data.status).name}»`,p.id);
     closeModal();await reload();render();toast(p?'اتحفظ':'اتضاف البوست');
   };
-  if(p)$('p_del').onclick=async()=>{if(confirm('متأكد تمسح البوست؟')){await sb.from('posts').delete().eq('id',p.id);closeModal();await reload();render();toast('اتمسح');}};
+  if(p&&canEdit())$('p_del').onclick=async()=>{if(confirm('متأكد تمسح البوست؟')){await sb.from('posts').delete().eq('id',p.id);closeModal();await reload();render();toast('اتمسح');}};
   $('overlay').classList.add('show');
 }
 function closeModal(){$('overlay').classList.remove('show');}
@@ -558,7 +629,9 @@ function changeMyPhoto(){
 
 /* ---------- WIRE ---------- */
 function wire(){
-  $('addBtn').onclick=()=>openPost(null, tab==='week'?ymd(new Date()):null);
+  $('addBtn').onclick=()=>{ if(!canEdit())return toast('المتابع ميقدرش يضيف بوست',true); openPost(null, tab==='week'?ymd(new Date()):null); };
+  $('bellBtn').onclick=e=>{e.stopPropagation();toggleNotif();};
+  document.addEventListener('click',e=>{const p=$('notifPanel');if(p&&p.style.display==='block'&&!p.contains(e.target)&&e.target.id!=='bellBtn'&&!e.target.closest('#bellBtn'))p.style.display='none';});
   $('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload();};
   $('meAva').onclick=changeMyPhoto;
   $('mClose').onclick=closeModal;
