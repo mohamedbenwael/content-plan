@@ -1,0 +1,2202 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>A to Z - نظام تقييم المرشحين</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Tajawal', 'Cairo', 'sans-serif'],
+          display: ['Cairo', 'Tajawal', 'sans-serif'],
+        },
+        colors: {
+          'brand-dark': '#0b1830',
+          'brand-blue': '#22456f',
+          'brand-light': '#cfe0f0',
+          'navy-950': '#060e1e',
+          'navy-900': '#0b1830',
+          'navy-800': '#122444',
+          'navy-700': '#1a3459',
+          'navy-600': '#22456f',
+          'navy-500': '#2f5c8f',
+          'sky-400': '#6fa3d8',
+          'sky-300': '#9bc1de',
+          'paper': '#f3f6fa',
+          'success': '#1f9d6b',
+          'warning': '#d98c2b',
+          'danger': '#d64545',
+        }
+      }
+    }
+  };
+</script>
+<style>
+  body { font-family: 'Tajawal', 'Cairo', sans-serif; background-color: #f3f6fa; color: #0b1830; min-height: 100vh; }
+  h1, h2, h3, h4, .font-display { font-family: 'Cairo', 'Tajawal', sans-serif; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #f1f5f9; }
+  ::-webkit-scrollbar-thumb { background: #2f5c8f; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #0b1830; }
+  .trajectory-divider { position: relative; height: 1px; background: linear-gradient(90deg, transparent, #6fa3d8 50%, transparent); opacity: 0.5; }
+  .trajectory-arc { pointer-events: none; stroke: #6fa3d8; stroke-width: 1.5; fill: none; stroke-dasharray: 4 7; opacity: 0.45; }
+  @media (prefers-reduced-motion: no-preference) {
+    .trajectory-arc-animate { stroke-dasharray: 600; stroke-dashoffset: 600; animation: trajectory-draw 1.6s ease-out forwards; }
+  }
+  @keyframes trajectory-draw { to { stroke-dashoffset: 0; } }
+  @keyframes teacher-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  .teacher-float { animation: teacher-float 3s ease-in-out infinite; }
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+    outline: 2px solid #6fa3d8; outline-offset: 2px;
+  }
+  .icon { width: 1.25rem; height: 1.25rem; display: inline-block; vertical-align: middle; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================================
+   A TO Z — Training Platform (single-file rebuild)
+   All data is stored locally in this browser via localStorage.
+   No Firebase / Google AI Studio / Gemini dependency.
+   ========================================================================= */
+
+const LOGO_B64 = "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";
+const LOGO_SRC = "data:image/png;base64," + LOGO_B64;
+
+/* ---------------------------- Icons (inline SVG) ---------------------------- */
+const ICONS = {
+  logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+  clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  upload: '<path d="M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2.5 8.2"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/>',
+  checkCircle: '<path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><polyline points="22 4 12 14 9 11"/>',
+  externalLink: '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  alertTriangle: '<path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  userCheck: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/>',
+  userX: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="8" x2="22" y2="13"/><line x1="22" y1="8" x2="17" y2="13"/>',
+  search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  check: '<polyline points="20 6 9 17 4 12"/>',
+  x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  edit: '<path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+  save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>',
+  plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  menu: '<line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/>',
+  userCog: '<circle cx="18" cy="15" r="3"/><circle cx="9" cy="7" r="4"/><path d="M10 15H6a4 4 0 0 0-4 4v2"/><path d="m19.7 12.3-.4.9"/><path d="m16.7 17.8-.4.9"/><path d="m15.2 13.9-.9-.4"/><path d="m20.7 16.9-.9-.4"/><path d="m15.2 16.1-.9.4"/><path d="m20.7 13.1-.9.4"/><path d="m16.7 12.2-.4-.9"/><path d="m19.7 17.7-.4-.9"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  list: '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+  login: '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>',
+  userPlus: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>',
+  user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+  star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+};
+function icon(name, cls) {
+  return '<svg class="icon ' + (cls || '') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (ICONS[name] || '') + '</svg>';
+}
+function waIcon(cls) {
+  return '<svg class="icon ' + (cls || '') + '" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.8 14.02c-.24.68-1.4 1.32-1.93 1.4-.5.08-1.11.11-1.79-.11-.41-.13-.95-.31-1.63-.6-2.87-1.24-4.74-4.14-4.88-4.33-.14-.19-1.17-1.55-1.17-2.96s.73-2.1 1-2.39c.26-.28.56-.35.75-.35.19 0 .38 0 .54.01.17.01.41-.07.64.49.24.58.81 2 .88 2.15.07.15.12.32.02.51-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.72 1.19 1.55 1.93 1.06.95 1.96 1.24 2.24 1.38.28.14.44.12.6-.07.17-.19.71-.83.9-1.11.19-.28.38-.24.63-.14.26.09 1.63.77 1.9.91.28.14.46.21.53.33.07.12.07.68-.17 1.36z"/></svg>';
+}
+function fbIcon(cls) {
+  return '<svg class="icon ' + (cls || '') + '" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5.02 3.66 9.18 8.44 9.94v-7.03H7.9v-2.91h2.54V9.86c0-2.51 1.49-3.9 3.77-3.9 1.09 0 2.24.2 2.24.2v2.47h-1.26c-1.24 0-1.63.78-1.63 1.57v1.88h2.78l-.44 2.91h-2.34V22c4.78-.76 8.44-4.92 8.44-9.94z"/></svg>';
+}
+
+/* ---------------------------- Storage / DB layer ---------------------------- */
+const KEYS = { users: 'atoz_users', tasks: 'atoz_tasks', reviewers: 'atoz_reviewers', submissions: 'atoz_submissions', currentUser: 'atoz_currentUser', teacherPages: 'atoz_teacher_pages' };
+
+function loadJSON(key, fallback) {
+  try { const v = JSON.parse(localStorage.getItem(key)); return v === null || v === undefined ? fallback : v; }
+  catch (e) { return fallback; }
+}
+function saveJSON(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+const DEFAULT_TASKS = [
+  { id: 'task_1', day: 1, title: 'تصميم 2 كوميك', description: 'المطلوب تصميم 2 كوميك إبداعيين يتماشيان مع روح العلامة التجارية والمحتوى المطلوب.', exampleLink: 'https://www.facebook.com/reel/4475190766069499/', instructionLink: '' },
+  { id: 'task_2', day: 2, title: 'تجهيز 1 ريل من اليوتيوب', description: 'المطلوب اختيار مقطع من اليوتيوب وتحويله إلى ريل احترافي يتناسب مع منصات السوشيال ميديا.', exampleLink: 'https://www.facebook.com/share/v/1HGTHqiXLF/', instructionLink: '' },
+  { id: 'task_3', day: 3, title: 'كتابة 4 سكريبتات ريلزات', description: 'قم بكتابة 4 سكريبتات لريلزات جذابة ومبتكرة مع مراعاة الهوك (Hook) والرسالة الأساسية.', exampleLink: '', instructionLink: '' },
+  { id: 'task_4', day: 4, title: 'ابتكار 2 أفكار ديزاينات', description: 'قدم فكرتين لتصميمات سوشيال ميديا مع شرح مبسط للرؤية البصرية والهدف منها.', exampleLink: '', instructionLink: '' },
+  { id: 'task_5', day: 5, title: 'إعداد خطة محتوى أسبوعية', description: 'قم بإعداد خطة محتوى لأسبوع كامل تتضمن تنوعاً في أنواع المحتوى (ريلز، بوستات، ستوريز).', exampleLink: '', instructionLink: '' },
+  { id: 'task_6', day: 6, title: 'تصميم 2 أفكار ديزاينات لثمنيل', description: 'تصميم صورتين مصغرتين (Thumbnails) لفيديوهات يوتيوب بحيث تكون جذابة وتزيد من نسبة النقر.', exampleLink: '', instructionLink: '' },
+];
+const DEFAULT_REVIEWERS = [
+  { id: 'rev_1', name: 'عبد الرحمن' },
+  { id: 'rev_2', name: 'روان' },
+  { id: 'rev_3', name: 'يوسف خيري' },
+  { id: 'rev_4', name: 'زينة' },
+  { id: 'rev_5', name: 'بنوائل' },
+  { id: 'rev_6', name: 'احمد وائل' },
+];
+
+/* ---------------------------- Supabase sync layer ---------------------------- */
+const SUPABASE_URL = 'https://zpbnfhaynzddhyagxagu.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_6ulaUMfHcVzE58GTrYf2-Q_KHApyTNn';
+let sbClient = null;
+try {
+  if (window.supabase && typeof window.supabase.createClient === 'function') {
+    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } else {
+    console.error('Supabase library did not load from CDN; running in local-only mode.');
+  }
+} catch (e) {
+  console.error('Supabase init failed; running in local-only mode.', e);
+}
+
+/* Convert between the app's camelCase objects and the DB's snake_case columns */
+const Map_ = {
+  userToRow(u) {
+    return {
+      id: u.id, phone: u.phone, password_hash: u.passwordHash, role: u.role, name: u.name,
+      current_day: u.currentDay, day_start_time: u.dayStartTime, status: u.status,
+      reviewer_id: u.reviewerId, age: u.age, has_experience: !!u.hasExperience,
+      experience: u.experience, years_of_experience: u.yearsOfExperience,
+      portfolio_link: u.portfolioLink, trend_idea: u.trendIdea, daily_hours: u.dailyHours,
+      facebook_link: u.facebookLink, photo: u.photo, assigned_am_id: u.assignedAmId,
+      job_role: u.jobRole,
+    };
+  },
+  rowToUser(r) {
+    return {
+      id: r.id, phone: r.phone, passwordHash: r.password_hash, role: r.role, name: r.name,
+      currentDay: r.current_day, dayStartTime: r.day_start_time, status: r.status,
+      reviewerId: r.reviewer_id, age: r.age, hasExperience: r.has_experience,
+      experience: r.experience, yearsOfExperience: r.years_of_experience,
+      portfolioLink: r.portfolio_link, trendIdea: r.trend_idea, dailyHours: r.daily_hours,
+      facebookLink: r.facebook_link, photo: r.photo, assignedAmId: r.assigned_am_id,
+      jobRole: r.job_role,
+    };
+  },
+  taskToRow(t) {
+    return { id: t.id, day: t.day, title: t.title, description: t.description, example_link: t.exampleLink, instruction_link: t.instructionLink };
+  },
+  rowToTask(r) {
+    return { id: r.id, day: r.day, title: r.title, description: r.description, exampleLink: r.example_link, instructionLink: r.instruction_link };
+  },
+  reviewerToRow(r) {
+    return { id: r.id, name: r.name, manager_id: r.managerId || null, is_account_manager: !!r.isAccountManager };
+  },
+  rowToReviewer(r) {
+    const rev = { id: r.id, name: r.name, isAccountManager: r.is_account_manager };
+    if (r.manager_id) rev.managerId = r.manager_id;
+    return rev;
+  },
+  submissionToRow(s) {
+    return { id: s.id, user_id: s.userId, day: s.day, drive_link: s.driveLink, submitted_at: s.submittedAt, status: s.status, score: s.score, feedback: s.feedback };
+  },
+  rowToSubmission(r) {
+    return { id: r.id, userId: r.user_id, day: r.day, driveLink: r.drive_link, submittedAt: r.submitted_at, status: r.status, score: r.score, feedback: r.feedback };
+  },
+  teacherPageToRow(t) {
+    return { id: t.id, name: t.name, photo: t.photo, followers: t.followers, page_link: t.pageLink };
+  },
+  rowToTeacherPage(r) {
+    return { id: r.id, name: r.name, photo: r.photo, followers: r.followers, pageLink: r.page_link };
+  },
+};
+
+/* Background push to Supabase. Returns true on confirmed success, false on failure.
+   Most callers don't await this (local cache already updated so UI never waits), but callers that
+   need to know whether the save actually reached the server (e.g. adding a reviewer) can await it
+   and warn the user on failure instead of silently losing data on the next reload/sync. */
+async function pushRow(table, row) {
+  if (!sbClient) return true; // local-only mode; nothing to sync against
+  try {
+    const { error } = await sbClient.from(table).upsert(row);
+    if (error) { console.error(table, 'upsert error', error); return false; }
+    return true;
+  } catch (e) { console.error(table, 'upsert exception', e); return false; }
+}
+async function pushDelete(table, id) {
+  if (!sbClient) return true;
+  try {
+    const { error } = await sbClient.from(table).delete().eq('id', id);
+    if (error) { console.error(table, 'delete error', error); return false; }
+    return true;
+  } catch (e) { console.error(table, 'delete exception', e); return false; }
+}
+
+/* Pull everything from Supabase into the local cache (used on load and on realtime updates) */
+async function pullAllFromSupabase() {
+  if (!sbClient) return false;
+  try {
+    const [u, t, r, s, tp] = await Promise.all([
+      sbClient.from('users').select('*'),
+      sbClient.from('tasks').select('*'),
+      sbClient.from('reviewers').select('*'),
+      sbClient.from('submissions').select('*'),
+      sbClient.from('teacher_pages').select('*'),
+    ]);
+    if (!u.error && u.data) saveJSON(KEYS.users, u.data.map(Map_.rowToUser));
+    if (!t.error && t.data) saveJSON(KEYS.tasks, t.data.map(Map_.rowToTask));
+    if (!r.error && r.data) saveJSON(KEYS.reviewers, r.data.map(Map_.rowToReviewer));
+    if (!s.error && s.data) saveJSON(KEYS.submissions, s.data.map(Map_.rowToSubmission));
+    if (!tp.error && tp.data) saveJSON(KEYS.teacherPages, tp.data.map(Map_.rowToTeacherPage));
+    return true;
+  } catch (e) { console.error('pullAllFromSupabase failed', e); return false; }
+}
+
+const DB = {
+  getUsers() { return loadJSON(KEYS.users, []); },
+  saveUsers(u) { saveJSON(KEYS.users, u); },
+  upsertUser(user) {
+    const users = this.getUsers();
+    const i = users.findIndex(u => u.id === user.id);
+    if (i >= 0) users[i] = user; else users.push(user);
+    this.saveUsers(users);
+    return pushRow('users', Map_.userToRow(user));
+  },
+  deleteUser(id) {
+    this.saveUsers(this.getUsers().filter(u => u.id !== id));
+    pushDelete('users', id);
+  },
+
+  getTasks() { return loadJSON(KEYS.tasks, []).slice().sort((a, b) => a.day - b.day); },
+  saveTasks(t) { saveJSON(KEYS.tasks, t); },
+  upsertTask(task) {
+    const tasks = this.getTasks();
+    const id = task.id || ('task_' + task.day);
+    task = Object.assign({}, task, { id });
+    const i = tasks.findIndex(t => t.id === id);
+    if (i >= 0) tasks[i] = task; else tasks.push(task);
+    this.saveTasks(tasks);
+    pushRow('tasks', Map_.taskToRow(task));
+  },
+
+  getReviewers() { return loadJSON(KEYS.reviewers, []); },
+  saveReviewers(r) { saveJSON(KEYS.reviewers, r); },
+  upsertReviewer(rev) {
+    const revs = this.getReviewers();
+    const i = revs.findIndex(r => r.id === rev.id);
+    if (i >= 0) revs[i] = rev; else revs.push(rev);
+    this.saveReviewers(revs);
+    return pushRow('reviewers', Map_.reviewerToRow(rev));
+  },
+  deleteReviewer(id) {
+    this.saveReviewers(this.getReviewers().filter(r => r.id !== id));
+    pushDelete('reviewers', id);
+  },
+
+  getSubmissions() { return loadJSON(KEYS.submissions, []); },
+  saveSubmissions(s) { saveJSON(KEYS.submissions, s); },
+  upsertSubmission(sub) {
+    const subs = this.getSubmissions();
+    const i = subs.findIndex(s => s.id === sub.id);
+    if (i >= 0) subs[i] = sub; else subs.push(sub);
+    this.saveSubmissions(subs);
+    pushRow('submissions', Map_.submissionToRow(sub));
+  },
+
+  getTeacherPages() { return loadJSON(KEYS.teacherPages, []); },
+  saveTeacherPages(list) { saveJSON(KEYS.teacherPages, list); },
+  upsertTeacherPage(item) {
+    const list = this.getTeacherPages();
+    const i = list.findIndex(t => t.id === item.id);
+    if (i >= 0) list[i] = item; else list.push(item);
+    this.saveTeacherPages(list);
+    return pushRow('teacher_pages', Map_.teacherPageToRow(item));
+  },
+  deleteTeacherPage(id) {
+    this.saveTeacherPages(this.getTeacherPages().filter(t => t.id !== id));
+    pushDelete('teacher_pages', id);
+  },
+};
+
+function seedDB() {
+  if (!localStorage.getItem(KEYS.reviewers)) { DB.saveReviewers(DEFAULT_REVIEWERS); DEFAULT_REVIEWERS.forEach(r => pushRow('reviewers', Map_.reviewerToRow(r))); }
+  if (!localStorage.getItem(KEYS.tasks)) { DB.saveTasks(DEFAULT_TASKS); DEFAULT_TASKS.forEach(t => pushRow('tasks', Map_.taskToRow(t))); }
+  if (!localStorage.getItem(KEYS.users)) { const admin = { id: 'admin_1', phone: 'admin', passwordHash: 'admin', role: 'admin', currentDay: 1 }; DB.saveUsers([admin]); pushRow('users', Map_.userToRow(admin)); }
+  if (!localStorage.getItem(KEYS.submissions)) DB.saveSubmissions([]);
+}
+
+/* ---------------------------- Auth helpers ---------------------------- */
+function getCurrentUser() { return loadJSON(KEYS.currentUser, null); }
+function setCurrentUser(u) { saveJSON(KEYS.currentUser, u); }
+function doLogout() { localStorage.removeItem(KEYS.currentUser); navigate('/'); }
+
+/* ---------------------------- Utils ---------------------------- */
+function esc(str) {
+  if (str === undefined || str === null) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function fmtDate(ts) {
+  if (!ts) return '';
+  try { return new Date(ts).toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' }); }
+  catch (e) { return new Date(ts).toLocaleString(); }
+}
+function normalizePhoneForWhatsapp(phone) {
+  let digits = String(phone || '').replace(/[^0-9]/g, '');
+  if (!digits) return '';
+  if (digits.startsWith('0020')) digits = digits.slice(2);      // 0020xxxxxxxxxx -> 20xxxxxxxxxx
+  else if (digits.startsWith('20') && digits.length >= 12) { /* already has country code */ }
+  else if (digits.startsWith('0')) digits = '20' + digits.slice(1); // 01xxxxxxxxx -> 201xxxxxxxxx
+  else if (digits.length === 10 || digits.length === 11) digits = '20' + digits; // missing leading 0 and code
+  return digits;
+}
+function whatsappLink(phone) { return 'https://wa.me/' + normalizePhoneForWhatsapp(phone); }
+function whatsappSendLink(phone, message) { return whatsappLink(phone) + '?text=' + encodeURIComponent(message || ''); }
+function avatarHtml(user, size) {
+  size = size || 'w-10 h-10';
+  if (user && user.photo) return '<img src="' + user.photo + '" class="' + size + ' rounded-full object-cover border border-gray-200 shrink-0" alt="">';
+  return '<div class="' + size + ' rounded-full bg-brand-light/60 text-brand-dark flex items-center justify-center font-bold shrink-0">' + esc((user && user.name ? user.name.trim().charAt(0) : '?')) + '</div>';
+}
+function socialButtonsHtml(user) {
+  let html = '<div class="flex gap-1.5 items-center">';
+  if (user && user.phone) {
+    html += '<a href="' + whatsappLink(user.phone) + '" target="_blank" rel="noopener noreferrer" title="فتح واتساب" class="p-1.5 bg-green-500/10 text-green-600 hover:bg-green-500 hover:text-white rounded-lg transition-colors">' + waIcon('w-4 h-4') + '</a>';
+  }
+  if (user && user.facebookLink) {
+    html += '<a href="' + esc(facebookLink(user.facebookLink)) + '" target="_blank" rel="noopener noreferrer" title="فتح فيسبوك" class="p-1.5 bg-blue-500/10 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-colors">' + fbIcon('w-4 h-4') + '</a>';
+  }
+  html += '</div>';
+  return html;
+}
+function profileTriggerHtml(user, innerHtml) {
+  if (!user || !user.id) return innerHtml;
+  return '<button type="button" onclick="event.stopPropagation(); openProfile(\'' + user.id + '\');" class="text-right w-full hover:opacity-75 transition-opacity">' + innerHtml + '</button>';
+}
+function roleLabel(role) {
+  if (role === 'candidate') return 'متدرب';
+  if (role === 'reviewer') return 'تيم ليدر';
+  if (role === 'account_manager') return 'أكونت مانجر';
+  if (role === 'admin') return 'أدمن';
+  return role || '';
+}
+function jobRoleLabel(role) {
+  const map = {
+    'content_creator': 'كونتنت كريتور',
+    'video_editor': 'مونتير',
+    'graphic_designer': 'جرافيك ديزاينر',
+    'media_buyer': 'ميديا باير',
+    'youtube': 'يوتيوب'
+  };
+  return map[role] || role || 'غير محدد';
+}
+function jobRoleLabel(role) {
+  const map = {
+    'content_creator': 'كونتنت كريتور',
+    'video_editor': 'مونتير',
+    'graphic_designer': 'جرافيك ديزاينر',
+    'media_buyer': 'ميديا باير',
+    'youtube': 'يوتيوب'
+  };
+  return map[role] || role || 'غير محدد';
+}
+function statusLabel(status) {
+  if (status === 'pending_approval') return 'قيد المراجعة';
+  if (status === 'approved') return 'مقبول';
+  if (status === 'rejected') return 'مرفوض';
+  if (status === 'waiting') return 'في قائمة الانتظار';
+if (status === 'waiting') return 'في قائمة الانتظار';
+  return status || '';
+}
+function openProfile(userId) { UI.profileModalUserId = userId; rerender(); }
+function closeProfile() { UI.profileModalUserId = null; rerender(); }
+
+function renderProfileModal() {
+  if (!UI.profileModalUserId) return '';
+  const users = DB.getUsers();
+  const reviewers = DB.getReviewers();
+  const person = users.find(u => u.id === UI.profileModalUserId);
+  if (!person) return '';
+  const sessionUser = getCurrentUser();
+  const isOwnProfile = !!(sessionUser && sessionUser.id === person.id);
+
+  let extra = '';
+  if (person.role === 'candidate') {
+    const trainer = users.find(u => u.id === person.reviewerId);
+    extra += '<div class="mt-5 space-y-3 text-sm">' +
+      '<div class="flex justify-between border-b border-gray-100 pb-2"><span class="text-gray-500">الحالة</span><span class="font-medium text-brand-dark">' + esc(statusLabel(person.status)) + '</span></div>' +
+      (person.jobRole ? '<div class="flex justify-between border-b border-gray-100 pb-2"><span class="text-gray-500">الوظيفة</span><span class="font-bold text-brand-blue">' + esc(jobRoleLabel(person.jobRole)) + '</span></div>' : '') +
+      (person.age ? '<div class="flex justify-between border-b border-gray-100 pb-2"><span class="text-gray-500">السن</span><span class="font-medium text-brand-dark">' + esc(person.age) + '</span></div>' : '') +
+      (person.dailyHours ? '<div class="flex justify-between border-b border-gray-100 pb-2"><span class="text-gray-500">الوقت المتاح يومياً</span><span class="font-medium text-brand-dark">' + esc(person.dailyHours) + '</span></div>' : '') +
+      '<div class="flex justify-between border-b border-gray-100 pb-2"><span class="text-gray-500">الخبرة</span><span class="font-medium text-brand-dark">' + (person.hasExperience ? (esc(person.yearsOfExperience) + ' سنوات') : 'لا يوجد') + '</span></div>' +
+      (person.hasExperience && person.experience ? '<div class="border-b border-gray-100 pb-2"><span class="text-gray-500 block mb-1">تفاصيل الخبرة</span><span class="text-brand-dark">' + esc(person.experience) + '</span></div>' : '') +
+      (person.portfolioLink ? '<div class="flex justify-between border-b border-gray-100 pb-2"><span class="text-gray-500">البورتفوليو</span><a href="' + esc(person.portfolioLink) + '" target="_blank" rel="noreferrer" class="text-blue-600 hover:underline">فتح اللينك</a></div>' : '') +
+      (person.trendIdea ? '<div class="border-b border-gray-100 pb-2"><span class="text-gray-500 block mb-1">فكرة التريند</span><span class="text-brand-dark">' + esc(person.trendIdea) + '</span></div>' : '') +
+      (trainer ? '<div class="flex justify-between pb-2"><span class="text-gray-500">المدرب المسؤول</span><span class="font-medium text-brand-dark">' + esc(trainer.name) + '</span></div>' : '') +
+    '</div>';
+  } else if (person.role === 'reviewer' || person.role === 'account_manager') {
+    const revRow = reviewers.find(r => r.id === person.id);
+    const managedCount = users.filter(u => u.role === 'candidate' && u.status === 'approved' && u.reviewerId === person.id).length;
+    const manager = revRow && revRow.managerId ? reviewers.find(r => r.id === revRow.managerId) : null;
+    const teamLeadersUnder = revRow && revRow.isAccountManager ? reviewers.filter(r => r.managerId === person.id).length : 0;
+    extra += '<div class="mt-5 space-y-3 text-sm">' +
+      '<div class="flex justify-between border-b border-gray-100 pb-2"><span class="text-gray-500">يدرب مباشرة</span><span class="font-medium text-brand-dark">' + managedCount + ' متدرب</span></div>' +
+      (revRow && revRow.isAccountManager ? '<div class="flex justify-between border-b border-gray-100 pb-2"><span class="text-gray-500">تيم ليدرز تحته</span><span class="font-medium text-brand-dark">' + teamLeadersUnder + '</span></div>' : '') +
+      (manager ? '<div class="flex justify-between pb-2"><span class="text-gray-500">يتبع لـ</span><span class="font-medium text-brand-dark">' + esc(manager.name) + '</span></div>' : '') +
+    '</div>';
+  }
+
+  return '' +
+  '<div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="closeProfile()">' +
+    '<div class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 relative" onclick="event.stopPropagation()">' +
+      '<button onclick="closeProfile()" class="absolute top-4 left-4 text-gray-400 hover:text-brand-dark transition-colors">' + icon('x', 'w-5 h-5') + '</button>' +
+      '<div class="flex flex-col items-center text-center">' +
+        '<div class="relative">' + avatarHtml(person, 'w-24 h-24 text-3xl') +
+        (isOwnProfile ? '<button type="button" onclick="document.getElementById(\'profile-photo-input\').click();" title="تغيير الصورة" class="absolute -bottom-1 -left-1 bg-brand-blue text-white p-2 rounded-full border-2 border-white hover:bg-navy-700 transition-colors">' + icon('camera', 'w-4 h-4') + '</button>' : '') +
+        '</div>' +
+        (isOwnProfile ? '' +
+          '<input type="file" id="profile-photo-input" accept="image/*" class="hidden" onchange="handleProfilePhotoSelected(event, \'' + person.id + '\')">' +
+          '<p id="profile-photo-status" class="text-xs text-gray-500 mt-2">اضغط على الأيقونة لتغيير صورتك، هيتم ضغطها تلقائياً.</p>' +
+          (person.photo ? '<button type="button" onclick="handleRemoveProfilePhoto(\'' + person.id + '\')" class="text-xs text-danger hover:underline mt-1">إزالة الصورة</button>' : '')
+        : '') +
+        '<h3 class="text-xl font-bold text-brand-dark mt-4">' + esc(person.name || 'بدون اسم') + '</h3>' +
+        '<span class="text-xs text-brand-blue bg-brand-blue/10 px-2 py-1 rounded-full mt-2">' + esc(roleLabel(person.role)) + '</span>' +
+        '<div class="flex items-center gap-2 mt-4"><span class="font-mono text-gray-600" dir="ltr">' + esc(person.phone) + '</span></div>' +
+        '<div class="mt-3">' + socialButtonsHtml(person) + '</div>' +
+      '</div>' +
+      extra +
+    '</div>' +
+  '</div>';
+}
+
+async function handleProfilePhotoSelected(e, userId) {
+  const file = e.target.files && e.target.files[0];
+  const statusEl = document.getElementById('profile-photo-status');
+  if (!file) return;
+  if (statusEl) { statusEl.textContent = 'جاري ضغط الصورة...'; statusEl.className = 'text-xs text-gray-500 mt-2'; }
+  try {
+    const compressed = await compressImageFile(file);
+    if (compressed && compressed.length > PHOTO_MAX_BASE64_CHARS) {
+      if (statusEl) { statusEl.textContent = 'الصورة كبيرة جداً حتى بعد الضغط، من فضلك اختار صورة أصغر أو أبسط.'; statusEl.className = 'text-xs text-danger mt-2 font-medium'; }
+      e.target.value = '';
+      return;
+    }
+    const users = DB.getUsers();
+    const u = users.find(x => x.id === userId);
+    if (u) { u.photo = compressed || ''; DB.upsertUser(u); }
+    rerender();
+  } catch (err) {
+    if (statusEl) { statusEl.textContent = 'تعذر تجهيز الصورة، جرب صورة تانية.'; statusEl.className = 'text-xs text-danger mt-2 font-medium'; }
+    e.target.value = '';
+  }
+}
+function handleRemoveProfilePhoto(userId) {
+  const users = DB.getUsers();
+  const u = users.find(x => x.id === userId);
+  if (u) { u.photo = ''; DB.upsertUser(u); }
+  rerender();
+}
+function congratsWaMessage(name) { return 'مبروك يا ' + (name || '') + '! 🎉 تم قبولك في برنامج التدريب في A to Z، وهيتم التواصل معاك دلوقتي بكل التفاصيل.'; }
+function rejectWaMessage(name) { return 'شكراً ليك يا ' + (name || '') + ' على تقديمك لبرنامج A to Z. للأسف مش هينفع نكمل معاك في المرحلة دي، وبالتوفيق ليك في المرات الجاية إن شاء الله.'; }
+function openWhatsappMessage(phone, message) {
+  if (!phone) return;
+  window.open(whatsappSendLink(phone, message), '_blank', 'noopener,noreferrer');
+}
+function facebookLink(link) {
+  let l = String(link || '').trim();
+  if (!l) return '';
+  if (!/^https?:\/\//i.test(l)) l = 'https://' + l;
+  return l;
+}
+
+/* ---------------------------- Image compression (client-side, before upload) ---------------------------- */
+const PHOTO_MAX_DIMENSION = 480;      // أقصى عرض/ارتفاع للصورة بعد الضغط (بكسل)
+const PHOTO_JPEG_QUALITY = 0.72;      // جودة الضغط
+const PHOTO_MAX_BASE64_CHARS = 220000; // ≈ 160KB تقريباً بعد الترميز — سقف الأمان لخطة Supabase المجانية
+
+function compressImageFile(file) {
+  return new Promise((resolve, reject) => {
+    if (!file) { resolve(null); return; }
+    if (!file.type || file.type.indexOf('image/') !== 0) { reject(new Error('الملف المختار مش صورة')); return; }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('تعذرت قراءة الصورة'));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('تعذر فتح الصورة'));
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > h) { if (w > PHOTO_MAX_DIMENSION) { h = Math.round(h * PHOTO_MAX_DIMENSION / w); w = PHOTO_MAX_DIMENSION; } }
+        else { if (h > PHOTO_MAX_DIMENSION) { w = Math.round(w * PHOTO_MAX_DIMENSION / h); h = PHOTO_MAX_DIMENSION; } }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', PHOTO_JPEG_QUALITY));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ---------------------------- UI ephemeral state ---------------------------- */
+const UI = {
+login: { isLogin: true, hasExperience: false, jobRole: 'content_creator', error: '', successMsg: '', photoData: '' },  admin: { activeTab: 'pending', searchTerm: '', jobRoleFilter: '', selectedReviewerId: null, reviewModal: null },
+  adminTasks: { isAdding: false, editingId: null },
+  adminReviewers: { isAdding: false, role: 'reviewer' },
+  adminTeachers: { isAdding: false, editingId: null, photoData: '' },
+  accountManager: { activeTab: 'pending' },
+  mobileMenuOpen: false,
+  profileModalUserId: null,
+};
+
+/* Fixed cap for AM direct trainees. With a small, fixed org size (2 TLs per AM), a flat cap is
+   simpler and more predictable than a scaling formula. 3 was chosen so the AM stays hands-on in
+   training without taking on a load close to a full TL's cap (5) — most of the load should still
+   go to the TLs, since training is their main job. Adjust this single number if it proves too
+   high or low in practice. */
+function computeAmDirectCap(amId) {
+  return 3;
+}
+
+/* A team leader already has other responsibilities beyond training, so they shouldn't take on
+   more than this many direct trainees at once. Once every TL (and the AM) in an org is at cap,
+   new candidates overflow to a different AM's org instead of piling up past this limit. */
+const TL_DIRECT_CAP = 5;
+
+let activeInterval = null;
+function clearTimers() { if (activeInterval) { clearInterval(activeInterval); activeInterval = null; } }
+
+/* Re-render while trying to preserve focus/caret in the active input */
+function rerender() {
+  const active = document.activeElement;
+  const activeId = active && active.id;
+  const selStart = active && typeof active.selectionStart === 'number' ? active.selectionStart : null;
+  const selEnd = active && typeof active.selectionEnd === 'number' ? active.selectionEnd : null;
+  render();
+  if (activeId) {
+    const el = document.getElementById(activeId);
+    if (el) {
+      el.focus();
+      if (selStart !== null && el.setSelectionRange) {
+        try { el.setSelectionRange(selStart, selEnd); } catch (e) {}
+      }
+    }
+  }
+}
+
+/* ---------------------------- Router ---------------------------- */
+function navigate(hash) { location.hash = '#' + hash; }
+function currentRoute() { return location.hash.replace(/^#/, '') || '/'; }
+
+function render() {
+  clearTimers();
+  const route = currentRoute();
+  const user = getCurrentUser();
+  const app = document.getElementById('app');
+
+  if (route === '/') {
+    app.innerHTML = renderLogin();
+    return;
+  }
+  if (route === '/dashboard') {
+    if (!user || user.role !== 'candidate') { navigate('/'); return; }
+    app.innerHTML = renderCandidateDashboard(user) + renderProfileModal();
+    startCandidateTimer(user);
+    return;
+  }
+  if (route.indexOf('/admin') === 0) {
+    if (!user || user.role !== 'admin') { navigate('/'); return; }
+    app.innerHTML = renderAdminLayout(route) + renderProfileModal();
+    return;
+  }
+  if (route === '/reviewer') {
+    if (!user || user.role !== 'reviewer') { navigate('/'); return; }
+    app.innerHTML = renderReviewerDashboard(user) + renderProfileModal();
+    return;
+  }
+  if (route === '/account-manager') {
+    if (!user || user.role !== 'account_manager') { navigate('/'); return; }
+    app.innerHTML = renderAccountManagerDashboard(user) + renderProfileModal();
+    return;
+  }
+  navigate('/');
+}
+
+window.addEventListener('hashchange', render);
+window.addEventListener('DOMContentLoaded', async function () {
+  const app = document.getElementById('app');
+  app.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;color:#22456f;font-family:Tajawal,sans-serif;">جاري تحميل البيانات...</div>';
+  try {
+    await pullAllFromSupabase();
+  } catch (e) {
+    console.error('Initial data pull failed; continuing with local data.', e);
+  }
+  seedDB();
+  render();
+
+  /* Live sync: when data changes on another device, pull the latest and re-render */
+  if (sbClient) {
+    try {
+      const channel = sbClient.channel('atoz-sync-channel');
+      ['users', 'tasks', 'reviewers', 'submissions', 'teacher_pages'].forEach(function (table) {
+        channel.on('postgres_changes', { event: '*', schema: 'public', table: table }, async function () {
+          await pullAllFromSupabase();
+          rerender();
+        });
+      });
+      channel.subscribe();
+    } catch (e) {
+      console.error('Realtime subscription failed.', e);
+    }
+  }
+});
+
+/* ---------------------------- Shared components ---------------------------- */
+function Logo(opts) {
+  opts = opts || {};
+  const h = opts.h || 'h-9';
+  let html = '<div class="flex items-center gap-3"><img src="' + LOGO_SRC + '" alt="A TO Z" class="' + h + ' w-auto object-contain">';
+  if (opts.withLabel) {
+    html += '<div class="leading-tight"><div class="text-white font-display font-extrabold tracking-wide">A TO Z</div>' +
+      '<div class="text-sky-300 text-[10px] uppercase tracking-[0.2em]">Advertising Agency</div></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function DashboardHeader(opts) {
+  opts = opts || {};
+  const isImpersonating = !!localStorage.getItem('atoz_impersonating_as_admin');
+  const impersonateBanner = isImpersonating ?
+    '<div class="bg-purple-600 text-white text-center text-sm py-2 px-4 flex items-center justify-center gap-3">' +
+      icon('user', 'w-4 h-4') +
+      '<span>أنت بتشوف النظام بمنظور <strong>' + esc(opts.user ? opts.user.name : 'هذا الشخص') + '</strong> — أنت في وضع المشاهدة</span>' +
+      '<button onclick="handleStopImpersonating()" class="bg-white text-purple-700 font-bold px-3 py-0.5 rounded-lg text-xs hover:bg-purple-100 transition-colors mr-2">رجوع لحساب الأدمن</button>' +
+    '</div>' : '';
+  return '' +
+  impersonateBanner +
+  '<header class="bg-navy-950 sticky top-0 z-10 shadow-lg shadow-navy-950/10">' +
+    '<div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">' +
+      '<div class="flex items-center gap-4">' +
+        Logo({ withLabel: true }) +
+        (opts.subtitle ? '<div class="hidden md:block h-6 w-px bg-white/15"></div><span class="hidden md:inline text-sky-300/90 text-sm">' + esc(opts.subtitle) + '</span>' : '') +
+      '</div>' +
+      '<div class="flex items-center gap-4">' +
+        (opts.extra || '') +
+        (opts.user ? '<button onclick="openProfile(\'' + opts.user.id + '\');" class="text-white/70 hover:text-white flex items-center gap-2 text-sm transition-colors">' + icon('user') + '<span class="hidden sm:inline">ملفي الشخصي</span></button>' : '') +
+        (isImpersonating ?
+          '<button onclick="handleStopImpersonating()" class="text-purple-300 hover:text-white flex items-center gap-2 text-sm transition-colors">' + icon('logout') + '<span class="hidden sm:inline">رجوع للأدمن</span></button>' :
+          '<button onclick="doLogout()" class="text-white/70 hover:text-white flex items-center gap-2 text-sm transition-colors">' + icon('logout') + '<span class="hidden sm:inline">خروج</span></button>') +
+      '</div>' +
+    '</div>' +
+  '</header>';
+}
+
+/* ============================================================
+   LOGIN / REGISTER
+   ============================================================ */
+function renderLogin() {
+  const L = UI.login;
+  return '' +
+  '<div class="min-h-screen flex flex-col md:flex-row">' +
+    '<div class="relative md:w-[42%] bg-navy-950 text-white flex flex-col justify-between overflow-hidden px-8 py-10 md:px-12 md:py-14">' +
+      '<svg class="absolute inset-0 w-full h-full" viewBox="0 0 500 900" preserveAspectRatio="none" aria-hidden="true">' +
+        '<path d="M -50 850 C 150 750, 200 400, 480 60" class="trajectory-arc trajectory-arc-animate"/>' +
+      '</svg>' +
+      '<div class="relative z-10">' + Logo({ h: 'h-12' }) + '</div>' +
+      '<div class="relative z-10 mt-16 md:mt-0">' +
+        '<p class="text-sky-300 text-xs uppercase tracking-[0.3em] mb-3">Advertising Agency</p>' +
+        '<h1 class="font-display text-3xl md:text-[2.6rem] font-extrabold leading-tight mb-4">من الإبرة<br>للصاروخ</h1>' +
+        '<p class="text-white/60 text-sm md:text-base max-w-xs leading-relaxed">نظام تقييم واختبار المتقدمين لبرنامج التدريب — من أول خطوة لحد ما تبقى جاهز للانطلاق.</p>' +
+      '</div>' +
+      '<div class="relative z-10 hidden md:block trajectory-divider mt-10"></div>' +
+      '<p class="relative z-10 hidden md:block text-white/30 text-xs mt-4">A TO Z Advertising Agency</p>' +
+    '</div>' +
+
+    '<div class="flex-1 flex items-center justify-center p-6 md:p-12 bg-paper">' +
+      '<div class="w-full max-w-md">' +
+        '<div class="mb-8">' +
+          '<h2 class="font-display text-2xl font-bold text-brand-dark">' + (L.isLogin ? 'تسجيل الدخول' : 'إنشاء حساب جديد') + '</h2>' +
+          '<p class="text-gray-500 text-sm mt-1">' + (L.isLogin ? 'أهلاً بيك تاني، سجل دخولك عشان تكمل رحلتك' : 'املأ بياناتك عشان نبدأ نقيّمك') + '</p>' +
+        '</div>' +
+
+        '<form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-5">' +
+          (L.error ? '<div class="bg-danger/10 border border-danger/30 text-danger p-3 rounded-lg text-sm text-center">' + esc(L.error) + '</div>' : '') +
+          (L.successMsg ? '<div class="bg-success/10 border border-success/30 text-success p-3 rounded-lg text-sm text-center">' + esc(L.successMsg) + '</div>' : '') +
+
+(!L.isLogin ? ('' +
+            '<div><label class="block text-sm font-medium text-gray-700 mb-2">الاسم ثلاثي</label>' +
+            '<input type="text" id="reg-name" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors" placeholder="الاسم"></div>' +
+
+            '<div><label class="block text-sm font-medium text-gray-700 mb-2">السن</label>' +
+            '<input type="number" id="reg-age" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors" placeholder="25"></div>' +
+
+            '<div><label class="block text-sm font-medium text-gray-700 mb-2">الوظيفة المتقدم إليها</label>' +
+            '<select id="reg-job-role" onchange="UI.login.jobRole = this.value; rerender();" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors font-bold text-navy-900">' +
+              '<option value="content_creator"' + (L.jobRole === 'content_creator' ? ' selected' : '') + '>كونتنت كريتور (Content Creator)</option>' +
+              '<option value="video_editor"' + (L.jobRole === 'video_editor' ? ' selected' : '') + '>مونتير (Video Editor)</option>' +
+              '<option value="graphic_designer"' + (L.jobRole === 'graphic_designer' ? ' selected' : '') + '>جرافيك ديزاينر (Graphic Designer)</option>' +
+              '<option value="media_buyer"' + (L.jobRole === 'media_buyer' ? ' selected' : '') + '>ميديا باير (Media Buyer)</option>' +
+              '<option value="youtube"' + (L.jobRole === 'youtube' ? ' selected' : '') + '>يوتيوب (YouTube Specialist)</option>' +
+            '</select></div>' +
+
+            /* --- أسئلة كونتنت كريتور --- */
+            (L.jobRole === 'content_creator' ? ('' +
+              '<div><label class="block text-sm font-medium text-gray-700 mb-2">هل عندك خبرة؟</label>' +
+              '<div class="flex gap-4">' +
+                '<button type="button" onclick="setHasExperience(true)" class="flex-1 py-2 px-4 rounded-xl border transition-colors font-medium ' + (L.hasExperience ? 'bg-navy-900 text-white border-navy-900' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50') + '">نعم</button>' +
+                '<button type="button" onclick="setHasExperience(false)" class="flex-1 py-2 px-4 rounded-xl border transition-colors font-medium ' + (!L.hasExperience ? 'bg-navy-900 text-white border-navy-900' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50') + '">لا</button>' +
+              '</div></div>' +
+              (L.hasExperience ? ('' +
+                '<div class="space-y-4 p-4 bg-white border border-gray-200 rounded-xl">' +
+                  '<div><label class="block text-sm font-medium text-gray-700 mb-2">عدد سنوات الخبرة</label>' +
+                  '<input type="number" id="reg-years" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors" placeholder="2"></div>' +
+                  '<div><label class="block text-sm font-medium text-gray-700 mb-2">اكتب خبرتك السابقة</label>' +
+                  '<textarea id="reg-exp" rows="2" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors resize-none" placeholder="أين عملت سابقاً؟"></textarea></div>' +
+                  '<div><label class="block text-sm font-medium text-gray-700 mb-2">لينك السي في أو سابقة الأعمال</label>' +
+                  '<input type="url" id="reg-portfolio" dir="ltr" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors text-left" placeholder="https://..."></div>' +
+                '</div>') : '') +
+              '<div><label class="block text-sm font-medium text-gray-700 mb-2">إيه أكتر منصة بتفهم في خوارزمياتها وبتحب تكتب ليها؟</label>' +
+              '<input type="text" id="reg-platforms" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors" placeholder="فيسبوك، تيك توك، يوتيوب..."></div>' +
+              '<div><label class="block text-sm font-medium text-gray-700 mb-2">تيست بسيط: اكتب فكرة ديزاين أو سكريبت عن تريند حالي</label>' +
+              '<textarea id="reg-trend" rows="2" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors resize-none" placeholder="فكرة الديزاين والتريند..."></textarea></div>'
+            ) : '') +
+
+            /* --- أسئلة مونتير --- */
+            (L.jobRole === 'video_editor' ? ('' +
+              '<div><label class="block text-sm font-medium text-gray-700 mb-2">لينك معرض الأعمال / Showreel</label>' +
+              '<input type="url" id="reg-portfolio" dir="ltr" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors text-left" placeholder="https://drive.google.com/..."></div>' +
+              '<div><label class="block text-sm font-medium text-gray-700 mb-2">إيه البرامج اللي بتعتمد عليها في شغلك؟</label>' +
+              '<input type="text" id="reg-software" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors" placeholder="Premiere Pro, After Effects, CapCut..."></div>' +
+              '<div><label class="block text-sm font-medium text-gray-700 mb-2">تقريباً بتاخد وقت قد إيه لإنهاء فيديو ريلز مدته دقيقة؟</label>' +
+              '<input type="text" id="reg-speed" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors" placeholder="ساعتين، يوم، إلخ..."></div>'
+            ) : '') +
+
+            /* --- أسئلة جرافيك ديزاينر --- */
+            (L.jobRole === 'graphic_designer' ? ('' +
+              '<div><label class="block text-sm font-medium text-gray-700 mb-2">لينك البورتفوليو (Behance / Drive)</label>' +
+              '<input type="url" id="reg-portfolio" dir="ltr" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors text-left" placeholder="https://behance.net/..."></div>' +
+              '<div><label class="block text-sm font-medium text-gray-700 mb-2">إيه البرامج الأساسية اللي بتشتغل عليها؟</label>' +
+              '<input type="text" id="reg-software" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors" placeholder="Photoshop, Illustrator, Canva..."></div>' +
+              '<div><label class="block text-sm font-medium text-gray-700 mb-2">إيه أكتر نوع بتتميز فيه؟</label>' +
+              '<input type="text" id="reg-specialty" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors" placeholder="سوشيال ميديا بوستس، ثمنيلز، دمج وتلاعب بالصور..."></div>'
+            ) : '') +
+
+            /* --- أسئلة ميديا باير --- */
+            (L.jobRole === 'media_buyer' ? ('' +
+              '<div><label class="block text-sm font-medium text-gray-700 mb-2">إيه المنصات اللي عملت عليها حملات ممولة قبل كدا؟</label>' +
+              '<input type="text" id="reg-ad-platforms" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors" placeholder="Meta, TikTok, Google Ads..."></div>' +
+              '<div><label class="block text-sm font-medium text-gray-700 mb-2">تقريباً إيه أكبر ميزانية أدرتها في حملة واحدة، وإيه الأهداف؟</label>' +
+              '<textarea id="reg-budget" rows="2" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors resize-none" placeholder="الميزانية والنتائج..."></textarea></div>' +
+              '<div><label class="block text-sm font-medium text-gray-700 mb-2">هل بتعرف تقرأ وتحلل الأرقام لتحسين الحملة (زي ROAS و CTR)؟</label>' +
+              '<input type="text" id="reg-analytics" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors" placeholder="نعم، خبرتي في تحليل النتائج..."></div>'
+            ) : '') +
+
+            /* --- أسئلة يوتيوب --- */
+            (L.jobRole === 'youtube' ? ('' +
+              '<div><label class="block text-sm font-medium text-gray-700 mb-2">لينكات قنوات أدرتها أو اشتغلت عليها قبل كدا</label>' +
+              '<textarea id="reg-channels" rows="2" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors resize-none" placeholder="https://youtube.com/..."></textarea></div>' +
+              '<div><label class="block text-sm font-medium text-gray-700 mb-2">إيه كان دورك بالضبط في القنوات دي؟</label>' +
+              '<input type="text" id="reg-yt-tasks" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors" placeholder="SEO، رفع الفيديوهات، عناوين، تاجز..."></div>' +
+              '<div><label class="block text-sm font-medium text-gray-700 mb-2">هل عندك خبرة في شغل الأكاديميات الرقمية والقنوات التعليمية؟</label>' +
+              '<input type="text" id="reg-edu-exp" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors" placeholder="اكتب تفاصيل خبرتك مع المحتوى التعليمي..."></div>'
+            ) : '') +
+
+            /* --- الحقول العامة للجميع --- */
+            '<div><label class="block text-sm font-medium text-gray-700 mb-2">قد إيه تقدر تخصص من وقتك يومياً؟</label>' +
+            '<select id="reg-hours" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors">' +
+              '<option value="">اختار...</option>' +
+              '<option value="أقل من ساعتين">أقل من ساعتين</option>' +
+              '<option value="من 2 إلى 4 ساعات">من 2 إلى 4 ساعات</option>' +
+              '<option value="أكتر من 4 ساعات">أكتر من 4 ساعات</option>' +
+            '</select></div>' +
+
+            '<div><label class="block text-sm font-medium text-gray-700 mb-2">لينك حساب الفيسبوك</label>' +
+            '<input type="url" id="reg-facebook" dir="ltr" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors text-left" placeholder="https://facebook.com/..."></div>' +
+
+            '<div><label class="block text-sm font-medium text-gray-700 mb-2">الصورة الشخصية (اختياري)</label>' +
+            '<input type="file" id="reg-photo" accept="image/*" onchange="handlePhotoSelected(event)" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors text-sm">' +
+            '<p id="reg-photo-status" class="text-xs text-gray-500 mt-2">هيتم ضغط الصورة تلقائياً قبل الإرسال.</p>' +
+            '<div id="reg-photo-preview" class="mt-3"></div></div>'
+          ) : '') +
+
+          '<div><label class="block text-sm font-medium text-gray-700 mb-2">رقم الواتساب (WhatsApp)</label>' +
+          '<input type="text" id="auth-phone" dir="ltr" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors" placeholder="مثال: 01012345678"></div>' +
+
+          '<div><label class="block text-sm font-medium text-gray-700 mb-2">كلمة المرور</label>' +
+          '<input type="password" id="auth-password" dir="ltr" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors" placeholder="••••••••"></div>' +
+
+          '<button type="submit" class="w-full bg-navy-900 hover:bg-navy-800 text-white font-bold py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2">' +
+            (L.isLogin ? (icon('login') + 'تسجيل الدخول') : (icon('userPlus') + 'إنشاء حساب جديد')) +
+          '</button>' +
+        '</form>' +
+
+        '<div class="mt-8 text-center">' +
+          '<button onclick="toggleAuthMode()" class="text-navy-500 hover:text-brand-dark transition-colors text-sm">' +
+            (L.isLogin ? 'ليس لديك حساب؟ قم بإنشاء حساب جديد' : 'لديك حساب بالفعل؟ سجل دخولك') +
+          '</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function toggleAuthMode() {
+  UI.login.isLogin = !UI.login.isLogin;
+  UI.login.error = '';
+  UI.login.successMsg = '';
+  UI.login.photoData = '';
+  render();
+}
+function setHasExperience(val) { UI.login.hasExperience = val; render(); }
+
+async function handlePhotoSelected(e) {
+  const file = e.target.files && e.target.files[0];
+  const statusEl = document.getElementById('reg-photo-status');
+  const previewEl = document.getElementById('reg-photo-preview');
+  UI.login.photoData = '';
+  if (!file) { if (statusEl) statusEl.textContent = 'هيتم ضغط الصورة تلقائياً قبل الإرسال. لو الصورة كبيرة جداً هتتطلب صورة أصغر.'; if (previewEl) previewEl.innerHTML = ''; return; }
+  if (statusEl) { statusEl.textContent = 'جاري تجهيز الصورة...'; statusEl.className = 'text-xs text-gray-500 mt-2'; }
+  try {
+    const compressed = await compressImageFile(file);
+    if (compressed && compressed.length > PHOTO_MAX_BASE64_CHARS) {
+      UI.login.photoData = '';
+      if (statusEl) { statusEl.textContent = 'الصورة كبيرة جداً حتى بعد الضغط، من فضلك اختار صورة أصغر أو أبسط.'; statusEl.className = 'text-xs text-danger mt-2 font-medium'; }
+      if (previewEl) previewEl.innerHTML = '';
+      e.target.value = '';
+      return;
+    }
+    UI.login.photoData = compressed || '';
+    if (statusEl) { statusEl.textContent = 'تم تجهيز الصورة بنجاح ✓'; statusEl.className = 'text-xs text-success mt-2 font-medium'; }
+    if (previewEl) previewEl.innerHTML = '<img src="' + compressed + '" class="w-20 h-20 rounded-full object-cover border border-gray-200">';
+  } catch (err) {
+    UI.login.photoData = '';
+    if (statusEl) { statusEl.textContent = 'تعذر تجهيز الصورة، جرب صورة تانية.'; statusEl.className = 'text-xs text-danger mt-2 font-medium'; }
+    e.target.value = '';
+  }
+}
+
+async function handleAuthSubmit(e) {
+  e.preventDefault();
+  const L = UI.login;
+  L.error = ''; L.successMsg = '';
+  const phone = (document.getElementById('auth-phone').value || '').trim();
+  const password = (document.getElementById('auth-password').value || '').trim();
+  let users = DB.getUsers();
+
+  if (L.isLogin) {
+    if (!phone || !password) { L.error = 'يرجى إدخال رقم الهاتف وكلمة المرور'; render(); return; }
+    let user = users.find(u => u.phone === phone && u.passwordHash === password);
+    if (!user) {
+      /* Local cache on this device might just be a bit behind the server — e.g. an account
+         created moments ago on the admin's device hasn't reached this device yet. Refresh once
+         from Supabase and retry before telling the person their login is wrong. */
+      await pullAllFromSupabase();
+      users = DB.getUsers();
+      user = users.find(u => u.phone === phone && u.passwordHash === password);
+    }
+    if (user) {
+      setCurrentUser(user);
+      if (user.role === 'admin') navigate('/admin');
+      else if (user.role === 'reviewer') navigate('/reviewer');
+      else if (user.role === 'account_manager') navigate('/account-manager');
+      else navigate('/dashboard');
+    } else {
+      L.error = 'بيانات الدخول غير صحيحة';
+      render();
+    }
+  } else {
+    const name = (document.getElementById('reg-name').value || '').trim();
+    const age = document.getElementById('reg-age').value;
+    const dailyHours = (document.getElementById('reg-hours').value || '').trim();
+    const facebook = (document.getElementById('reg-facebook').value || '').trim();
+    
+    const jobRole = UI.login.jobRole || 'content_creator';
+    const initialStatus = (jobRole === 'content_creator') ? 'pending_approval' : 'waiting';
+
+    let extraAnswers = {};
+
+    if (jobRole === 'content_creator') {
+      const hasExp = L.hasExperience;
+      extraAnswers = {
+        hasExperience: hasExp,
+        experience: hasExp ? (document.getElementById('reg-exp').value || '').trim() : '',
+        yearsOfExperience: hasExp ? Number(document.getElementById('reg-years').value) : 0,
+        portfolioLink: hasExp ? (document.getElementById('reg-portfolio').value || '').trim() : '',
+        platforms: (document.getElementById('reg-platforms').value || '').trim(),
+        trendIdea: (document.getElementById('reg-trend').value || '').trim()
+      };
+    } else if (jobRole === 'video_editor') {
+      extraAnswers = {
+        portfolioLink: (document.getElementById('reg-portfolio').value || '').trim(),
+        software: (document.getElementById('reg-software').value || '').trim(),
+        speed: (document.getElementById('reg-speed').value || '').trim()
+      };
+    } else if (jobRole === 'graphic_designer') {
+      extraAnswers = {
+        portfolioLink: (document.getElementById('reg-portfolio').value || '').trim(),
+        software: (document.getElementById('reg-software').value || '').trim(),
+        specialty: (document.getElementById('reg-specialty').value || '').trim()
+      };
+    } else if (jobRole === 'media_buyer') {
+      extraAnswers = {
+        adPlatforms: (document.getElementById('reg-ad-platforms').value || '').trim(),
+        budget: (document.getElementById('reg-budget').value || '').trim(),
+        analytics: (document.getElementById('reg-analytics').value || '').trim()
+      };
+    } else if (jobRole === 'youtube') {
+      extraAnswers = {
+        channels: (document.getElementById('reg-channels').value || '').trim(),
+        ytTasks: (document.getElementById('reg-yt-tasks').value || '').trim(),
+        eduExp: (document.getElementById('reg-edu-exp').value || '').trim()
+      };
+    }
+
+    if (!phone || !password || !name || !age || !dailyHours) { L.error = 'يرجى إكمال جميع الحقول الأساسية المطلوبة'; render(); return; }
+
+    const newUser = Object.assign({
+      id: 'user_' + Date.now(),
+      phone, passwordHash: password, role: 'candidate',
+      name, age: Number(age), dailyHours, facebookLink: facebook, photo: L.photoData || '',
+      status: initialStatus, jobRole: jobRole, currentDay: 1, dayStartTime: null,
+      assignedAmId: pickLeastLoadedAccountManager() || '',
+    }, extraAnswers);
+
+    DB.upsertUser(newUser);
+    L.photoData = '';
+    L.successMsg = (jobRole === 'content_creator') 
+      ? 'جاري مراجعة الاكونت وهيتم التواصل معاك واتساب' 
+      : 'تم تسجيل بياناتك بنجاح في قائمة الانتظار وستصلك التفاصيل عند فتح الشاغر';
+L.isLogin = true;
+    L.hasExperience = false;
+    render();
+  }
+}
+
+function renderTeacherPagesShowcase() {
+
+function renderTeacherPagesShowcase() {
+  const pages = DB.getTeacherPages();
+  if (pages.length === 0) return '';
+  let html = '<div class="mb-6 bg-white border border-brand-blue/20 rounded-2xl p-5">' +
+    '<h3 class="font-display font-bold text-brand-dark mb-1">أفضل صفحات مدرسين تقدر تشوف شغلهم</h3>' +
+    '<p class="text-gray-500 text-sm mb-4">نماذج من صفحات حقيقية بندير شغلها — دوس على أي صفحة عشان تفتحها</p>' +
+    '<div class="flex flex-wrap gap-6 justify-center">';
+  pages.forEach((p, idx) => {
+    html += '<a href="' + esc(p.pageLink) + '" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center text-center w-20 group">' +
+      '<div class="teacher-float" style="animation-delay:' + (idx * 0.3) + 's">' +
+        (p.photo
+          ? '<img src="' + p.photo + '" class="w-16 h-16 rounded-full object-cover border-2 border-brand-light shadow-md group-hover:border-brand-blue transition-colors">'
+          : '<div class="w-16 h-16 rounded-full bg-brand-blue/10 text-brand-blue flex items-center justify-center font-bold text-xl border-2 border-brand-light shadow-md group-hover:border-brand-blue transition-colors">' + esc((p.name || '?').charAt(0)) + '</div>') +
+      '</div>' +
+      '<span class="text-xs font-bold text-brand-dark mt-2 truncate w-full">' + esc(p.name) + '</span>' +
+      '<span class="text-[11px] text-gray-500">' + formatFollowers(p.followers) + ' متابع</span>' +
+    '</a>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+/* ============================================================
+   CANDIDATE DASHBOARD
+   ============================================================ */
+function renderCandidateDashboard(sessionUser) {
+  const users = DB.getUsers();
+  const tasks = DB.getTasks();
+  const submissions = DB.getSubmissions();
+  const user = users.find(u => u.id === sessionUser.id) || sessionUser;
+
+  if (user.status === 'pending_approval') {
+    return DashboardHeader({ user: user }) +
+      '<main class="max-w-3xl mx-auto px-4 mt-8">' +
+        '<div class="bg-white border border-brand-blue/30 rounded-2xl p-12 text-center">' +
+          '<div class="w-20 h-20 bg-warning/10 text-warning rounded-full flex items-center justify-center mx-auto mb-6">' + icon('clock', 'w-10 h-10') + '</div>' +
+          '<h2 class="text-3xl font-bold text-brand-dark mb-4">جاري مراجعة الاكونت</h2>' +
+          '<p class="text-gray-600 text-lg">سيتم مراجعة طلبك والتواصل معاك واتساب في أقرب وقت.</p>' +
+        '</div>' +
+      '</main>';
+  }
+  if (user.status === 'waiting') {
+    return DashboardHeader({ user: user }) +
+      '<main class="max-w-3xl mx-auto px-4 mt-8">' +
+        '<div class="bg-white border border-brand-blue/30 rounded-2xl p-12 text-center">' +
+          '<div class="w-20 h-20 bg-brand-blue/10 text-brand-blue rounded-full flex items-center justify-center mx-auto mb-6">' + icon('list', 'w-10 h-10') + '</div>' +
+          '<h2 class="text-3xl font-bold text-brand-dark mb-4">تم تسجيل بياناتك بنجاح</h2>' +
+          '<p class="text-gray-600 text-lg">الوظيفة اللي قدمت عليها (' + esc(jobRoleLabel(user.jobRole)) + ') مش بتحتاج اختبار تدريب حالياً. بياناتك معانا في قائمة الانتظار، وسيتم التواصل معك على الواتساب أول ما يكون فيه فرصة تناسبك.</p>' +
+        '</div>' +
+      '</main>';
+  }
+  if (user.status === 'rejected') {
+    return DashboardHeader({ user: user }) +
+      '<main class="max-w-3xl mx-auto px-4 mt-8">' +
+        '<div class="bg-white border border-danger/30 rounded-2xl p-12 text-center">' +
+          '<div class="w-20 h-20 bg-danger/10 text-danger rounded-full flex items-center justify-center mx-auto mb-6">' + icon('alertTriangle', 'w-10 h-10') + '</div>' +
+          '<h2 class="text-3xl font-bold text-brand-dark mb-4">نعتذر لك</h2>' +
+          '<p class="text-gray-600 text-lg">لم يتم قبول طلبك في هذه المرحلة. نتمنى لك التوفيق في المرات القادمة.</p>' +
+        '</div>' +
+      '</main>';
+  }
+
+  const task = tasks.find(t => t.day === user.currentDay) || null;
+  const submission = submissions.find(s => s.userId === user.id && s.day === user.currentDay) || null;
+  const isDayFinished = tasks.length === 0 ? false : (user.currentDay > tasks.length || (user.currentDay === tasks.length && submission));
+  const trainer = users.find(u => u.id === user.reviewerId);
+
+  let html = DashboardHeader({ subtitle: 'مرحباً، ' + user.phone, user: user }) + '<main class="max-w-3xl mx-auto px-4 mt-8">';
+
+  if (trainer) {
+    html += '<div class="mb-6 bg-success/10 border border-success/30 rounded-xl p-5 flex items-center gap-4">' +
+      '<div class="w-14 h-14 bg-success/20 rounded-full flex items-center justify-center text-success shrink-0">' + icon('userCheck', 'w-7 h-7') + '</div>' +
+      '<div><p class="text-brand-dark font-bold text-lg">🎉 مبروك! تم قبولك في التدريب</p>' +
+      '<p class="text-gray-600 text-sm mt-1">تقدر تتواصل مع المدرب بتاعك ' + esc(trainer.name) + ' علي الرقم دا: ' +
+      '<a href="' + whatsappLink(trainer.phone) + '" target="_blank" rel="noopener noreferrer" class="text-brand-blue mr-2 font-mono" dir="ltr">' + esc(trainer.phone) + '</a></p></div></div>';
+  }
+
+  html += renderTeacherPagesShowcase();
+
+  if (isDayFinished) {
+    html += '<div class="bg-white border border-brand-blue/30 rounded-2xl p-8 text-center">' +
+      '<div class="w-16 h-16 bg-success/10 text-success rounded-full flex items-center justify-center mx-auto mb-4">' + icon('checkCircle', 'w-8 h-8') + '</div>' +
+      '<h2 class="text-2xl font-bold text-brand-dark mb-2">أحسنت! لقد أكملت جميع المهام</h2>' +
+      '<p class="text-gray-600">سيقوم فريق الموارد البشرية بمراجعة نتائجك والتواصل معك قريباً.</p></div>';
+  } else {
+    html += '<div class="space-y-6">';
+    html += '<div class="flex justify-between items-center mb-8">';
+    tasks.forEach(t => {
+      const day = t.day;
+      const dotClass = (user.currentDay > day || (user.currentDay === day && submission))
+        ? 'bg-navy-900 text-white'
+        : (user.currentDay === day ? 'bg-white text-brand-dark ring-4 ring-navy-900/10 border border-navy-900/20' : 'bg-gray-100 text-gray-400');
+      const barWidth = user.currentDay > day ? 'w-full' : 'w-0';
+      html += '<div class="flex flex-col items-center flex-1">' +
+        '<div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mb-2 transition-colors ' + dotClass + '">' + day + '</div>' +
+        '<div class="h-1 w-full mt-2 rounded ' + (day < tasks.length ? 'bg-gray-200' : 'hidden') + '">' +
+          '<div class="h-full bg-navy-900 rounded transition-all ' + barWidth + '"></div></div></div>';
+    });
+    html += '</div>';
+
+    html += '<div class="bg-white border border-brand-dark/10 rounded-2xl p-8">';
+    html += '<div class="flex justify-between items-start mb-6"><div>' +
+      '<div class="inline-block px-3 py-1 bg-brand-blue/20 text-brand-blue rounded-full text-sm font-medium mb-3">اليوم ' + (task ? task.day : '-') + ' من ' + tasks.length + '</div>' +
+      '<h2 class="text-3xl font-bold text-brand-dark">' + esc(task ? task.title : '') + '</h2></div>';
+
+    if (user.dayStartTime && !submission) {
+      html += '<div id="countdown-box" class="flex flex-col items-end p-3 rounded-xl border bg-brand-blue/10 border-brand-blue/30 text-brand-blue">' +
+        '<div class="flex items-center gap-2 text-sm mb-1">' + icon('clock', 'w-4 h-4') + 'الوقت المتبقي</div>' +
+        '<div id="countdown-text" class="text-xl font-bold font-mono" dir="ltr">--:--:--</div></div>';
+    }
+    html += '</div>';
+
+    html += '<div class="prose max-w-none mb-8"><p class="text-gray-700 leading-relaxed text-lg">' + esc(task ? task.description : '') + '</p></div>';
+
+    html += '<div class="grid sm:grid-cols-2 gap-4 mb-8">';
+    if (task && task.exampleLink) {
+      html += '<a href="' + esc(task.exampleLink) + '" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-brand-dark/10 hover:bg-gray-100 transition-colors group">' +
+        '<span class="text-brand-dark font-medium">مثال توضيحي</span>' + icon('externalLink', 'w-5 h-5 text-gray-600 group-hover:text-brand-blue') + '</a>';
+    }
+    if (task && task.instructionLink) {
+      html += '<a href="' + esc(task.instructionLink) + '" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-brand-dark/10 hover:bg-gray-100 transition-colors group">' +
+        '<span class="text-brand-dark font-medium">طريقة عمل التاسك</span>' + icon('externalLink', 'w-5 h-5 text-gray-600 group-hover:text-brand-blue') + '</a>';
+    }
+    html += '</div>';
+
+    if (!user.dayStartTime) {
+      html += '<div class="text-center p-8 bg-brand-blue/10 rounded-xl border border-brand-blue/30">' + icon('clock', 'w-12 h-12 text-brand-blue mx-auto mb-4') +
+        '<h3 class="text-xl font-bold text-brand-dark mb-2">هل أنت مستعد للبدء؟</h3>' +
+        '<p class="text-gray-600 mb-6">بمجرد الضغط على زر البدء، سيبدأ العد التنازلي لمدة 12 ساعة لإنجاز المهمة.</p>' +
+        '<button onclick="handleStartDay(\'' + user.id + '\')" class="bg-navy-900 hover:bg-navy-800 text-white font-bold py-3 px-8 rounded-xl transition-colors shadow-lg shadow-navy-900/20">بدء المهمة الآن</button></div>';
+    } else {
+      const deadline = user.dayStartTime + 12 * 60 * 60 * 1000;
+      const expired = Date.now() > deadline;
+      if (submission) {
+        html += '<div class="text-center p-8 bg-success/10 rounded-xl border border-success/30">' + icon('checkCircle', 'w-12 h-12 text-success mx-auto mb-4') +
+          '<h3 class="text-xl font-bold text-brand-dark mb-2">تم تسليم المهمة</h3><p class="text-gray-600">بانتظار مراجعة المدرب.</p></div>';
+      } else if (expired) {
+        html += '<div class="text-center p-8 bg-danger/10 rounded-xl border border-danger/30">' + icon('alertTriangle', 'w-12 h-12 text-danger mx-auto mb-4') +
+          '<h3 class="text-xl font-bold text-brand-dark mb-2">انتهى الوقت المحدد!</h3>' +
+          '<p class="text-gray-600">لقد تجاوزت الـ 12 ساعة المخصصة لهذه المهمة. يرجى التواصل مع فريق الموارد البشرية.</p></div>';
+      } else {
+        html += '<form onsubmit="handleSubmitTask(event, \'' + user.id + '\')" class="mt-8 pt-8 border-t border-brand-dark/10">' +
+          '<h3 class="text-lg font-bold text-brand-dark mb-4">تسليم المهمة</h3>' +
+          '<p class="text-sm text-gray-600 mb-4">قم برفع الملفات على Google Drive وانسخ الرابط هنا. تأكد من أن الرابط "متاح لأي شخص لديه الرابط".</p>' +
+          '<div class="flex flex-col sm:flex-row gap-4">' +
+            '<input type="url" required id="drive-link" placeholder="https://drive.google.com/..." class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-navy-500 transition-colors" dir="ltr">' +
+            '<button type="submit" class="bg-navy-900 hover:bg-navy-800 text-white font-bold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2 whitespace-nowrap">' + icon('upload', 'w-5 h-5') + 'إرسال المهمة</button>' +
+          '</div></form>';
+      }
+    }
+    html += '</div></div>';
+  }
+
+  html += '</main>';
+  return html;
+}
+
+function handleStartDay(userId) {
+  const users = DB.getUsers();
+  const user = users.find(u => u.id === userId);
+  if (!user) return;
+  user.dayStartTime = Date.now();
+  DB.upsertUser(user);
+  setCurrentUser(user);
+  render();
+}
+
+function handleSubmitTask(e, userId) {
+  e.preventDefault();
+  const driveLink = document.getElementById('drive-link').value;
+  if (!driveLink) return;
+  const users = DB.getUsers();
+  const tasks = DB.getTasks();
+  const user = users.find(u => u.id === userId);
+  if (!user) return;
+
+  const newSubmission = { id: 'sub_' + Date.now(), userId: user.id, day: user.currentDay, driveLink, submittedAt: Date.now(), status: 'pending' };
+  DB.upsertSubmission(newSubmission);
+
+  if (user.currentDay < tasks.length) {
+    user.currentDay += 1;
+    user.dayStartTime = null;
+    DB.upsertUser(user);
+    setCurrentUser(user);
+  } else {
+    setCurrentUser(user);
+  }
+  render();
+}
+
+function startCandidateTimer(sessionUser) {
+  const box = document.getElementById('countdown-box');
+  if (!box) return;
+  function tick() {
+    const users = DB.getUsers();
+    const user = users.find(u => u.id === sessionUser.id);
+    const submissions = DB.getSubmissions();
+    const submission = submissions.find(s => s.userId === user.id && s.day === user.currentDay);
+    if (!user || !user.dayStartTime || submission) return;
+    const deadline = user.dayStartTime + 12 * 60 * 60 * 1000;
+    const remaining = deadline - Date.now();
+    const textEl = document.getElementById('countdown-text');
+    if (!textEl) return;
+    if (remaining <= 0) {
+      clearInterval(activeInterval);
+      render();
+      return;
+    }
+    const totalSec = Math.floor(remaining / 1000);
+    const h = Math.floor(totalSec / 3600), m = Math.floor((totalSec % 3600) / 60), s = totalSec % 60;
+    const pad = n => String(n).padStart(2, '0');
+    textEl.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+    if (h < 2) {
+      box.classList.remove('bg-brand-blue/10', 'border-brand-blue/30', 'text-brand-blue');
+      box.classList.add('bg-danger/10', 'border-danger/50', 'text-danger');
+    }
+  }
+  tick();
+  activeInterval = setInterval(tick, 1000);
+}
+
+/* ============================================================
+   ADMIN LAYOUT + PAGES
+   ============================================================ */
+function renderAdminLayout(route) {
+  const sessionUser = getCurrentUser();
+  const navItems = [
+    { path: '/admin', icon: 'users', label: 'المرشحين والتقييم' },
+    { path: '/admin/tasks', icon: 'list', label: 'إدارة المهام' },
+    { path: '/admin/reviewers', icon: 'userCog', label: 'إدارة المراجعين' },
+    { path: '/admin/teachers', icon: 'star', label: 'صفحات المدرسين' },
+  ];
+  let nav = '';
+  navItems.forEach(item => {
+    const isActive = route === item.path;
+    nav += '<a href="#' + item.path + '" onclick="UI.mobileMenuOpen=false;" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors border-r-2 ' +
+      (isActive ? 'bg-white/10 text-white font-bold border-sky-400' : 'text-white/60 hover:bg-white/5 hover:text-white border-transparent') + '">' +
+      icon(item.icon, 'w-5 h-5') + esc(item.label) + '</a>';
+  });
+  if (sessionUser) {
+    nav += '<button type="button" onclick="UI.mobileMenuOpen=false; openProfile(\'' + sessionUser.id + '\');" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors border-r-2 text-white/60 hover:bg-white/5 hover:text-white border-transparent">' +
+      icon('user', 'w-5 h-5') + 'الملف الشخصي</button>';
+  }
+
+  const open = UI.mobileMenuOpen;
+
+  let content;
+  if (route === '/admin/tasks') content = renderAdminTasks();
+  else if (route === '/admin/reviewers') content = renderAdminReviewers();
+  else if (route === '/admin/teachers') content = renderAdminTeacherPages();
+  else content = renderAdminOverview();
+
+  return '' +
+  '<div class="min-h-screen flex flex-col md:flex-row bg-paper">' +
+    '<div class="md:hidden flex items-center justify-between p-4 bg-navy-950 sticky top-0 z-30">' +
+      '<div class="flex items-center gap-3">' + Logo({ h: 'h-8' }) + '<span class="text-xs text-sky-300 font-light uppercase tracking-wider">Admin</span></div>' +
+      '<button onclick="UI.mobileMenuOpen=true; rerender();" class="text-white p-2">' + icon('menu', 'w-6 h-6') + '</button>' +
+    '</div>' +
+    (open ? '<div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden" onclick="UI.mobileMenuOpen=false; rerender();"></div>' : '') +
+    '<aside class="w-64 bg-navy-950 flex flex-col fixed top-0 bottom-0 right-0 z-50 transform transition-transform duration-300 ease-in-out ' + (open ? 'translate-x-0' : 'translate-x-full') + ' md:translate-x-0">' +
+      '<div class="p-6 border-b border-white/10 flex justify-between items-center">' +
+        '<div>' + Logo({ h: 'h-9' }) + '<p class="text-xs text-sky-300 font-light uppercase tracking-wider mt-2">Admin Panel</p></div>' +
+        '<button class="md:hidden text-white/70 hover:text-white" onclick="UI.mobileMenuOpen=false; rerender();">' + icon('x', 'w-6 h-6') + '</button>' +
+      '</div>' +
+      '<nav class="flex-1 p-4 space-y-1">' + nav + '</nav>' +
+      '<div class="p-4 border-t border-white/10">' +
+        '<button onclick="doLogout()" class="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-white/60 hover:bg-danger/10 hover:text-danger transition-colors">' + icon('logout', 'w-5 h-5') + 'تسجيل الخروج</button>' +
+      '</div>' +
+    '</aside>' +
+    '<main class="flex-1 md:mr-64 p-4 md:p-8 w-full max-w-full overflow-x-hidden">' + content + '</main>' +
+  '</div>';
+}
+
+/* --- Admin Overview --- */
+function renderAdminOverview() {
+  const allUsers = DB.getUsers().filter(u => u.role === 'candidate');
+  const submissions = DB.getSubmissions();
+  const tasks = DB.getTasks();
+  const reviewers = DB.getReviewers();
+  const A = UI.admin;
+
+  const filteredUsers = allUsers.filter(u => ((u.phone && u.phone.includes(A.searchTerm)) || (u.name && u.name.includes(A.searchTerm))) && (!A.jobRoleFilter || u.jobRole === A.jobRoleFilter));
+  const pendingUsers = filteredUsers.filter(u => u.status === 'pending_approval');
+  const waitingUsers = filteredUsers.filter(u => u.status === 'waiting');
+  const activeUsers = filteredUsers.filter(u => u.status === 'approved');
+
+  const allPending = allUsers.filter(u => u.status === 'pending_approval').length;
+  const allWaiting = allUsers.filter(u => u.status === 'waiting').length;
+  const allApproved = allUsers.filter(u => u.status === 'approved').length;
+  const allRejected = allUsers.filter(u => u.status === 'rejected').length;
+
+  const jobRoleKeys = ['content_creator', 'video_editor', 'graphic_designer', 'media_buyer', 'youtube'];
+  const jobRoleCounts = jobRoleKeys.map(k => ({ key: k, label: jobRoleLabel(k), count: allUsers.filter(u => u.jobRole === k).length }));
+
+  let html = '<div class="space-y-8">';
+  html += '<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"><div>' +
+    '<h2 class="text-3xl font-bold text-brand-dark mb-2">لوحة التحكم والمراجعة</h2>' +
+    '<p class="text-gray-600">تابع تقدم المرشحين وقم بتقييم إجاباتهم</p></div></div>';
+
+  html += '<div class="grid grid-cols-1 md:grid-cols-3 gap-4">' +
+    '<div class="bg-[#f8f9fa] border border-brand-dark/10 rounded-2xl p-6 flex flex-col justify-center items-center"><span class="text-gray-600 text-sm mb-1">المتقدمين قيد الانتظار</span><span class="text-3xl font-bold text-yellow-500">' + allPending + '</span></div>' +
+    '<div class="bg-[#f8f9fa] border border-brand-dark/10 rounded-2xl p-6 flex flex-col justify-center items-center"><span class="text-gray-600 text-sm mb-1">تم قبولهم (في التدريب)</span><span class="text-3xl font-bold text-green-500">' + allApproved + '</span></div>' +
+    '<div class="bg-[#f8f9fa] border border-brand-dark/10 rounded-2xl p-6 flex flex-col justify-center items-center"><span class="text-gray-600 text-sm mb-1">تم رفضهم</span><span class="text-3xl font-bold text-red-500">' + allRejected + '</span></div>' +
+  '</div>';
+
+  html += '<div class="bg-[#f8f9fa] border border-brand-dark/10 rounded-2xl p-6">' +
+    '<h3 class="text-xl font-bold text-brand-dark mb-4">عدد المتقدمين لكل وظيفة</h3>' +
+    '<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">' +
+    jobRoleCounts.map(jr => (
+      '<button onclick="UI.admin.jobRoleFilter=\'' + jr.key + '\'; rerender();" class="bg-gray-50 border border-brand-dark/5 rounded-xl p-4 flex flex-col items-center hover:border-brand-light hover:bg-white transition-colors">' +
+        '<span class="text-gray-600 text-sm mb-1">' + esc(jr.label) + '</span>' +
+        '<span class="text-2xl font-bold text-brand-blue">' + jr.count + '</span>' +
+      '</button>'
+    )).join('') +
+    '</div>' +
+  '</div>';
+
+  html += '<div class="bg-[#f8f9fa] border border-brand-dark/10 rounded-2xl p-6">' +
+    '<h3 class="text-xl font-bold text-brand-dark mb-1">التيم ليدرز والمتدربين</h3>' +
+    '<p class="text-gray-500 text-sm mb-4">دوس على أي كارت عشان تشوف تفاصيل أكتر عن الشخص ده والمتدربين اللي تحته</p>' +
+    '<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">';
+  reviewers.forEach(reviewer => {
+    const count = allUsers.filter(u => u.status === 'approved' && u.reviewerId === reviewer.id).length;
+    const teamLeadersUnder = reviewer.isAccountManager ? reviewers.filter(r => r.managerId === reviewer.id).length : 0;
+    html += '<div class="relative">' +
+      '<div class="absolute top-2 left-2 flex gap-1 z-10">' +
+        '<button onclick="event.stopPropagation(); openProfile(\'' + reviewer.id + '\');" title="عرض البروفايل" class="p-1 bg-white/80 text-gray-400 hover:text-brand-blue rounded-lg transition-colors">' + icon('externalLink', 'w-3.5 h-3.5') + '</button>' +
+        '<button onclick="event.stopPropagation(); handleImpersonate(\'' + reviewer.id + '\');" title="شوف بمنظوره" class="p-1 bg-white/80 text-gray-400 hover:text-purple-600 rounded-lg transition-colors">' + icon('login', 'w-3.5 h-3.5') + '</button>' +
+      '</div>' +
+      '<button onclick="UI.admin.selectedReviewerId=\'' + reviewer.id + '\'; rerender();" class="w-full bg-gray-50 border border-brand-dark/5 rounded-xl p-4 text-center hover:border-brand-light hover:bg-white transition-colors text-right">' +
+      '<div class="flex items-center justify-between mb-1"><div class="text-brand-dark font-bold">' + esc(reviewer.name) + '</div>' +
+      '<span class="text-[10px] text-brand-blue px-1.5 py-0.5 bg-brand-blue/10 rounded">' + (reviewer.isAccountManager ? 'أكونت مانجر' : 'تيم ليدر') + '</span></div>' +
+      '<div class="text-sm text-brand-blue">يدرب مباشرة: ' + count + '</div>' +
+      (reviewer.isAccountManager ? '<div class="text-sm text-gray-500">تيم ليدرز تحته: ' + teamLeadersUnder + '</div>' : '') +
+    '</button></div>';
+  });
+  html += '</div>';
+  if (reviewers.length === 0) html += '<div class="text-center p-6 text-gray-500">لا يوجد تيم ليدرز أو أكونت مانجرز حالياً</div>';
+  html += '</div>';
+
+  if (A.selectedReviewerId) html += renderReviewerDetailModal(A.selectedReviewerId, reviewers, allUsers, submissions);
+
+  html += '<div class="bg-[#f8f9fa] border border-brand-dark/10 rounded-2xl overflow-hidden">' +
+    '<div class="p-4 border-b border-brand-dark/10 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">' +
+      '<div class="flex gap-2">' +
+        '<button onclick="UI.admin.activeTab=\'pending\'; rerender();" class="px-4 py-2 rounded-lg font-medium transition-colors ' + (A.activeTab === 'pending' || !A.activeTab ? 'bg-brand-light text-brand-dark' : 'text-gray-600 hover:text-brand-dark hover:bg-[#f8f9fa]') + '">طلبات الانضمام (' + pendingUsers.length + ')</button>' +
+        '<button onclick="UI.admin.activeTab=\'waiting\'; rerender();" class="px-4 py-2 rounded-lg font-medium transition-colors ' + (A.activeTab === 'waiting' ? 'bg-brand-light text-brand-dark' : 'text-gray-600 hover:text-brand-dark hover:bg-[#f8f9fa]') + '">قائمة الانتظار (' + waitingUsers.length + ')</button>' +
+        '<button onclick="UI.admin.activeTab=\'active\'; rerender();" class="px-4 py-2 rounded-lg font-medium transition-colors ' + (A.activeTab === 'active' ? 'bg-brand-light text-brand-dark' : 'text-gray-600 hover:text-brand-dark hover:bg-[#f8f9fa]') + '">المرشحين النشطين (' + activeUsers.length + ')</button>' +
+      '</div>' +
+      '<div class="relative w-full max-w-md">' + icon('search', 'absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500') +
+        '<input type="text" id="admin-search" oninput="UI.admin.searchTerm=this.value; rerender();" placeholder="ابحث بالاسم أو برقم الهاتف..." value="' + esc(A.searchTerm) + '" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl pr-10 pl-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light"></div>' +
+      '<select id="admin-job-role-filter" onchange="UI.admin.jobRoleFilter=this.value; rerender();" class="bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light">' +
+        '<option value="">كل الوظائف</option>' +
+        jobRoleKeys.map(k => '<option value="' + k + '"' + (A.jobRoleFilter === k ? ' selected' : '') + '>' + esc(jobRoleLabel(k)) + '</option>').join('') +
+      '</select>' +
+    '</div>' +
+    '<div class="overflow-x-auto">';
+
+  if (A.activeTab === 'pending') {
+    html += '<table class="w-full text-right"><thead class="bg-gray-50 text-gray-600 text-sm"><tr>' +
+      '<th class="px-6 py-4 font-medium">الاسم</th><th class="px-6 py-4 font-medium">رقم الهاتف / تواصل</th><th class="px-6 py-4 font-medium">السن / الخبرة</th><th class="px-6 py-4 font-medium">الإجراءات</th>' +
+      '</tr></thead><tbody class="divide-y divide-white/5">';
+    if (pendingUsers.length === 0) {
+      html += '<tr><td colspan="4" class="px-6 py-8 text-center text-gray-500">لا يوجد طلبات انضمام قيد المراجعة</td></tr>';
+    } else {
+      pendingUsers.forEach(user => {
+        const assignedAm = user.assignedAmId ? reviewers.find(r => r.id === user.assignedAmId) : null;
+        const detailMsg = 'الوقت المتاح يومياً:\\n' + (user.dailyHours || 'لا يوجد') + '\\n\\nمحول لـ:\\n' + (assignedAm ? assignedAm.name : 'غير محدد') + '\\n\\nالخبرة:\\n' + (user.hasExperience ? user.experience : 'لا يوجد') + '\\n\\nلينك السي في:\\n' + (user.portfolioLink || 'لا يوجد') + '\\n\\nفكرة التريند:\\n' + (user.trendIdea || '');
+        html += '<tr class="hover:bg-[#f8f9fa] transition-colors">' +
+          '<td class="px-6 py-4">' + profileTriggerHtml(user, '<div class="flex items-center gap-3">' + avatarHtml(user) + '<span class="text-brand-dark font-bold">' + esc(user.name) + '</span></div>') + (assignedAm ? '<div class="text-xs text-gray-500 mt-1">محول لـ: ' + esc(assignedAm.name) + '</div>' : '') + '</td>' +
+          '<td class="px-6 py-4"><div class="text-gray-700 font-mono mb-1.5" dir="ltr">' + esc(user.phone) + '</div>' + socialButtonsHtml(user) + '</td>' +
+          '<td class="px-6 py-4"><div class="text-sm">' +
+            (user.hasExperience ? ('<span class="text-brand-dark block">' + esc(user.age) + ' سنة / ' + esc(user.yearsOfExperience) + ' سنوات خبرة</span>') : ('<span class="text-brand-dark block">' + esc(user.age) + ' سنة / لا يوجد خبرة</span>')) +
+            (user.dailyHours ? '<span class="text-brand-blue block mt-0.5">' + esc(user.dailyHours) + ' يومياً</span>' : '') +
+            '<button onclick="alert(\'' + detailMsg.replace(/'/g, "\\'") + '\')" class="text-brand-blue hover:underline text-xs mt-1">عرض التفاصيل والتست</button></div></td>' +
+          '<td class="px-6 py-4"><div class="flex gap-2">' +
+            '<button onclick="handleApproveCandidate(\'' + user.id + '\')" class="p-2 bg-green-500/10 text-green-600 hover:bg-green-500 hover:text-white rounded-lg transition-colors" title="قبول">' + icon('userCheck', 'w-5 h-5') + '</button>' +
+            '<button onclick="handleRejectCandidate(\'' + user.id + '\')" class="p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors" title="رفض">' + icon('userX', 'w-5 h-5') + '</button>' +
+            '<button onclick="handleDeleteUser(\'' + user.id + '\')" class="p-2 bg-gray-500/10 text-gray-500 hover:bg-gray-500 hover:text-white rounded-lg transition-colors" title="مسح">' + icon('trash', 'w-5 h-5') + '</button>' +
+          '</div></td></tr>';
+      });
+    }
+    html += '</tbody></table>';
+  } else if (A.activeTab === 'waiting') {
+    html += '<table class="w-full text-right"><thead class="bg-gray-50 text-gray-600 text-sm"><tr>' +
+      '<th class="px-6 py-4 font-medium">الاسم</th><th class="px-6 py-4 font-medium">الوظيفة</th><th class="px-6 py-4 font-medium">رقم الهاتف</th><th class="px-6 py-4 font-medium">السن / الخبرة</th><th class="px-6 py-4 font-medium">الإجراءات</th>' +
+      '</tr></thead><tbody class="divide-y divide-white/5">';
+    if (waitingUsers.length === 0) {
+      html += '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">لا يوجد متقدمين في قائمة الانتظار</td></tr>';
+    } else {
+      waitingUsers.forEach(user => {
+        const roleLbl = jobRoleLabel(user.jobRole);
+        const detailMsg = 'الوظيفة:\\n' + roleLbl + '\\n\\nالوقت المتاح:\\n' + (user.dailyHours || 'لا يوجد') + '\\n\\nالخبرة:\\n' + (user.hasExperience ? user.experience : 'لا يوجد') + '\\n\\nلينك السي في:\\n' + (user.portfolioLink || 'لا يوجد');
+        html += '<tr class="hover:bg-[#f8f9fa] transition-colors">' +
+          '<td class="px-6 py-4">' + profileTriggerHtml(user, '<div class="flex items-center gap-3">' + avatarHtml(user) + '<span class="text-brand-dark font-bold">' + esc(user.name) + '</span></div>') + '</td>' +
+          '<td class="px-6 py-4"><span class="px-3 py-1 bg-brand-blue/10 text-brand-blue rounded-md text-xs font-bold">' + esc(roleLbl) + '</span></td>' +
+          '<td class="px-6 py-4"><div class="text-gray-700 font-mono mb-1.5" dir="ltr">' + esc(user.phone) + '</div>' + socialButtonsHtml(user) + '</td>' +
+          '<td class="px-6 py-4"><div class="text-sm">' +
+            (user.hasExperience ? ('<span class="text-brand-dark block">' + esc(user.age) + ' سنة / ' + esc(user.yearsOfExperience) + ' سنوات خبرة</span>') : ('<span class="text-brand-dark block">' + esc(user.age) + ' سنة / لا يوجد خبرة</span>')) +
+            '<button onclick="alert(\'' + detailMsg.replace(/'/g, "\\'") + '\')" class="text-brand-blue hover:underline text-xs mt-1">عرض التفاصيل</button></div></td>' +
+          '<td class="px-6 py-4"><div class="flex gap-2">' +
+            '<button onclick="handleDeleteUser(\'' + user.id + '\')" class="p-2 bg-gray-500/10 text-gray-500 hover:bg-gray-500 hover:text-white rounded-lg transition-colors" title="مسح">' + icon('trash', 'w-5 h-5') + '</button>' +
+          '</div></td></tr>';
+      });
+    }
+    html += '</tbody></table>';
+  } else {
+    html += '<table class="w-full text-right"><thead class="bg-gray-50 text-gray-600 text-sm"><tr>' +
+      '<th class="px-6 py-4 font-medium">الاسم / الرقم</th><th class="px-6 py-4 font-medium">المراجع</th><th class="px-6 py-4 font-medium">اليوم الحالي</th>' +
+      '<th class="px-6 py-4 font-medium">آخر تسليم</th><th class="px-6 py-4 font-medium">التقييم</th><th class="px-6 py-4 font-medium">الإجراءات</th>' +
+      '</tr></thead><tbody class="divide-y divide-white/5">';
+    if (activeUsers.length === 0) {
+      html += '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">لا يوجد مرشحين نشطين حتى الآن</td></tr>';
+    } else {
+      activeUsers.forEach(user => {
+        const userSubs = submissions.filter(s => s.userId === user.id).sort((a, b) => b.day - a.day);
+        const latestSub = userSubs[0];
+        const reviewer = reviewers.find(r => r.id === user.reviewerId);
+        html += '<tr class="hover:bg-[#f8f9fa] transition-colors">' +
+          '<td class="px-6 py-4">' + profileTriggerHtml(user, '<div class="flex items-center gap-3">' + avatarHtml(user) + '<div><div class="font-bold text-brand-dark">' + esc(user.name || 'بدون اسم') + '</div><div class="text-gray-600 font-mono text-sm mt-1" dir="ltr">' + esc(user.phone) + '</div></div></div>') + '<div class="mt-2">' + socialButtonsHtml(user) + '</div></td>' +
+          '<td class="px-6 py-4 text-gray-700">' + esc(reviewer ? reviewer.name : '-') + '</td>' +
+          '<td class="px-6 py-4 text-brand-blue">اليوم ' + user.currentDay + '</td>' +
+          '<td class="px-6 py-4">' + (latestSub ? ('<div class="text-sm"><span class="text-brand-dark">تاسك يوم ' + latestSub.day + '</span><div class="text-gray-500 text-xs mt-1">' + fmtDate(latestSub.submittedAt) + '</div></div>') : '<span class="text-gray-500 text-sm">لم يقم بتسليم شيء</span>') + '</td>' +
+          '<td class="px-6 py-4">' + (
+            latestSub && latestSub.status === 'pending' ? '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-yellow-500/10 text-yellow-600 text-xs font-medium">قيد الانتظار</span>' :
+            latestSub && latestSub.status === 'reviewed' ? '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-green-500/10 text-green-600 text-xs font-medium">تم التقييم (' + latestSub.score + '/10)</span>' : '-'
+          ) + '</td>' +
+          '<td class="px-6 py-4"><div class="flex gap-2 items-center">' +
+            (latestSub && latestSub.status === 'pending' ? '<button onclick="openReviewModal(\'' + latestSub.id + '\')" class="text-sm bg-brand-light text-brand-dark px-3 py-1.5 rounded-lg font-medium hover:bg-[#f8f9fa] transition-colors">مراجعة الآن</button>' : '') +
+            (latestSub && latestSub.status === 'reviewed' ? '<span class="text-xs text-gray-500">مكتمل</span>' : '') +
+            '<button onclick="handleImpersonate(\'' + user.id + '\')" class="p-2 bg-purple-500/10 text-purple-500 hover:bg-purple-500 hover:text-white rounded-lg transition-colors" title="شوف بمنظوره">' + icon('login', 'w-4 h-4') + '</button>' +
+            '<button onclick="handleDeleteUser(\'' + user.id + '\')" class="p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors" title="مسح">' + icon('trash', 'w-4 h-4') + '</button>' +
+          '</div></td></tr>';
+      });
+    }
+    html += '</tbody></table>';
+  }
+  html += '</div></div>';
+
+  if (A.reviewModal) html += renderReviewModal(A.reviewModal);
+
+  html += '</div>';
+  return html;
+}
+
+async function handleDeleteUser(userId) {
+  if (!confirm('هل أنت متأكد من مسح حساب المتدرب؟ لن يمكن استرجاع بياناته.')) return;
+  const deleted = await pushDelete('users', userId);
+  if (!deleted) {
+    alert('الحذف لم يتم على السيرفر (تأكد من الاتصال بالإنترنت)، فالحساب لسه موجود فعلياً. حاول تاني، ولو المشكلة استمرت متعمليش حساب جديد بنفس الرقم لحد ما تتأكد إن القديم اتمسح خالص.');
+    return;
+  }
+  DB.saveUsers(DB.getUsers().filter(u => u.id !== userId));
+  rerender();
+}
+
+/* Impersonate: admin views the app as another user. Stores admin session so they can return. */
+function handleImpersonate(userId) {
+  const users = DB.getUsers();
+  const target = users.find(u => u.id === userId);
+  if (!target) return;
+  const adminSession = getCurrentUser();
+  // Save admin session under a separate key so we can restore it
+  localStorage.setItem('atoz_impersonating_as_admin', JSON.stringify(adminSession));
+  setCurrentUser(target);
+  if (target.role === 'admin') navigate('/admin');
+  else if (target.role === 'reviewer') navigate('/reviewer');
+  else if (target.role === 'account_manager') navigate('/account-manager');
+  else navigate('/dashboard');
+}
+
+function handleStopImpersonating() {
+  const adminSession = localStorage.getItem('atoz_impersonating_as_admin');
+  if (!adminSession) { doLogout(); return; }
+  try {
+    const admin = JSON.parse(adminSession);
+    localStorage.removeItem('atoz_impersonating_as_admin');
+    setCurrentUser(admin);
+    navigate('/admin');
+  } catch (e) { doLogout(); }
+}
+
+function handleApproveCandidate(userId) {
+  const allUsers = DB.getUsers();
+  const reviewers = DB.getReviewers();
+  const u = allUsers.find(user => user.id === userId);
+  if (!u) return;
+
+  // If the candidate was pre-assigned to an AM, try that AM's org first (with overflow to
+  // another AM if that org is full); otherwise fall back to least-loaded across all reviewers.
+  let assignedReviewerId;
+  const assignedAm = u.assignedAmId ? reviewers.find(r => r.id === u.assignedAmId) : null;
+
+  if (assignedAm) {
+    assignedReviewerId = findAssignmentAcrossOrgs(assignedAm.id, allUsers, reviewers);
+  } else {
+    // No AM assigned — fall back to least-loaded reviewer across all
+    const activeCandidates = allUsers.filter(u2 => u2.status === 'approved');
+    const reviewerCounts = {};
+    reviewers.forEach(r => reviewerCounts[r.id] = 0);
+    activeCandidates.forEach(c => { if (c.reviewerId && reviewerCounts[c.reviewerId] !== undefined) reviewerCounts[c.reviewerId]++; });
+    assignedReviewerId = reviewers[0] ? reviewers[0].id : undefined;
+    let minCount = Infinity;
+    Object.keys(reviewerCounts).forEach(rId => { if (reviewerCounts[rId] < minCount) { minCount = reviewerCounts[rId]; assignedReviewerId = rId; } });
+  }
+
+  u.status = 'approved'; u.reviewerId = assignedReviewerId; DB.upsertUser(u); openWhatsappMessage(u.phone, congratsWaMessage(u.name));
+  rerender();
+}
+function handleRejectCandidate(userId) {
+  const u = DB.getUsers().find(user => user.id === userId);
+  if (u) { u.status = 'rejected'; DB.upsertUser(u); openWhatsappMessage(u.phone, rejectWaMessage(u.name)); }
+  rerender();
+}
+
+function openReviewModal(submissionId) {
+  UI.admin.reviewModal = { submissionId, score: 10, feedback: '' };
+  rerender();
+}
+function closeReviewModal() { UI.admin.reviewModal = null; rerender(); }
+function submitReviewModal() {
+  const m = UI.admin.reviewModal;
+  if (!m) return;
+  const score = Number(document.getElementById('review-score').value);
+  const feedback = document.getElementById('review-feedback').value;
+  const subs = DB.getSubmissions();
+  const s = subs.find(sub => sub.id === m.submissionId);
+  if (s) { s.status = 'reviewed'; s.score = score; s.feedback = feedback; DB.upsertSubmission(s); }
+  UI.admin.reviewModal = null;
+  rerender();
+}
+
+function renderReviewModal(modalState) {
+  const subs = DB.getSubmissions();
+  const submission = subs.find(s => s.id === modalState.submissionId);
+  if (!submission) return '';
+  return '' +
+  '<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">' +
+    '<div class="bg-white border border-brand-dark/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">' +
+      '<div class="p-6 border-b border-brand-dark/10 flex justify-between items-center">' +
+        '<h3 class="text-xl font-bold text-brand-dark">تقييم المهمة (اليوم ' + submission.day + ')</h3>' +
+        '<button onclick="closeReviewModal()" class="text-gray-600 hover:text-brand-dark">' + icon('x', 'w-5 h-5') + '</button>' +
+      '</div>' +
+      '<div class="p-6 space-y-6">' +
+        '<div><label class="text-sm text-gray-600 mb-2 block">رابط التسليم (Google Drive)</label>' +
+        '<a href="' + esc(submission.driveLink) + '" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-3 rounded-xl bg-[#f8f9fa] border border-brand-dark/10 hover:border-brand-light/50 transition-colors group">' +
+        '<span class="text-brand-dark truncate font-mono text-sm" dir="ltr">' + esc(submission.driveLink) + '</span>' + icon('externalLink', 'w-4 h-4 text-brand-blue flex-shrink-0') + '</a></div>' +
+        '<div><label class="text-sm text-gray-600 mb-2 block">الدرجة (من 10)</label>' +
+        '<input type="number" id="review-score" min="0" max="10" value="10" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light"></div>' +
+        '<div><label class="text-sm text-gray-600 mb-2 block">ملاحظات للمرشح (اختياري)</label>' +
+        '<textarea id="review-feedback" rows="3" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light resize-none" placeholder="اكتب ملاحظاتك هنا..."></textarea></div>' +
+      '</div>' +
+      '<div class="p-4 border-t border-brand-dark/10 flex justify-end gap-3 bg-gray-50">' +
+        '<button onclick="closeReviewModal()" class="px-4 py-2 text-gray-600 hover:text-brand-dark transition-colors">إلغاء</button>' +
+        '<button onclick="submitReviewModal()" class="px-6 py-2 bg-brand-light text-brand-dark font-bold rounded-lg hover:bg-[#f8f9fa] transition-colors flex items-center gap-2">' + icon('check', 'w-4 h-4') + 'حفظ التقييم</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function renderReviewerDetailModal(reviewerId, reviewers, users, submissions) {
+  const reviewer = reviewers.find(r => r.id === reviewerId);
+  if (!reviewer) return '';
+  const manager = reviewer.managerId ? reviewers.find(r => r.id === reviewer.managerId) : null;
+  const teamLeadersUnder = reviewer.isAccountManager ? reviewers.filter(r => r.managerId === reviewer.id) : [];
+  const directCandidates = users.filter(u => u.status === 'approved' && u.reviewerId === reviewer.id);
+  const teamLeaderCandidateCounts = teamLeadersUnder.map(tl => ({ reviewer: tl, count: users.filter(u => u.status === 'approved' && u.reviewerId === tl.id).length }));
+  const totalUnderTeam = directCandidates.length + teamLeaderCandidateCounts.reduce((sum, t) => sum + t.count, 0);
+
+  let html = '<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">' +
+    '<div class="bg-[#f8f9fa] border border-brand-dark/10 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl">' +
+    '<div class="p-6 border-b border-brand-dark/10 flex justify-between items-start sticky top-0 bg-[#f8f9fa]">' +
+      '<div><div class="flex items-center gap-2"><h3 class="text-xl font-bold text-brand-dark">' + esc(reviewer.name) + '</h3>' +
+      '<span class="text-xs text-brand-blue px-2 py-0.5 bg-brand-blue/10 rounded-lg">' + (reviewer.isAccountManager ? 'أكونت مانجر' : 'تيم ليدر') + '</span></div>' +
+      (manager ? '<div class="text-sm text-gray-600 mt-1">تابع لـ: ' + esc(manager.name) + '</div>' : '') + '</div>' +
+      '<button onclick="UI.admin.selectedReviewerId=null; rerender();" class="text-gray-600 hover:text-brand-dark">' + icon('x', 'w-5 h-5') + '</button>' +
+    '</div>' +
+    '<div class="p-6 space-y-6">' +
+      '<div class="grid grid-cols-2 md:grid-cols-3 gap-3">' +
+        '<div class="bg-gray-50 border border-brand-dark/5 rounded-xl p-3 text-center"><div class="text-2xl font-bold text-brand-dark">' + directCandidates.length + '</div><div class="text-xs text-gray-600 mt-1">متدرب يدربه مباشرة</div></div>' +
+        (reviewer.isAccountManager ? (
+          '<div class="bg-gray-50 border border-brand-dark/5 rounded-xl p-3 text-center"><div class="text-2xl font-bold text-brand-dark">' + teamLeadersUnder.length + '</div><div class="text-xs text-gray-600 mt-1">تيم ليدر تحته</div></div>' +
+          '<div class="bg-gray-50 border border-brand-dark/5 rounded-xl p-3 text-center"><div class="text-2xl font-bold text-brand-dark">' + totalUnderTeam + '</div><div class="text-xs text-gray-600 mt-1">إجمالي متدربين الفريق كله</div></div>'
+        ) : '') +
+      '</div>';
+
+  if (reviewer.isAccountManager && teamLeadersUnder.length > 0) {
+    html += '<div><h4 class="font-bold text-brand-dark mb-2">التيم ليدرز التابعين له</h4><div class="grid grid-cols-1 sm:grid-cols-2 gap-2">';
+    teamLeaderCandidateCounts.forEach(({ reviewer: tl, count }) => {
+      html += '<div class="flex justify-between items-center bg-gray-50 border border-brand-dark/5 rounded-lg px-3 py-2 text-sm"><span class="text-brand-dark font-medium">' + esc(tl.name) + '</span><span class="text-brand-blue">' + count + ' متدرب</span></div>';
+    });
+    html += '</div></div>';
+  }
+
+  html += '<div><h4 class="font-bold text-brand-dark mb-2">المتدربين تحته مباشرة</h4>';
+  if (directCandidates.length === 0) {
+    html += '<div class="text-center text-gray-500 text-sm py-4">لا يوجد متدربين تحته مباشرة حالياً</div>';
+  } else {
+    html += '<div class="space-y-2">';
+    directCandidates.forEach(c => {
+      const latestSub = submissions.filter(s => s.userId === c.id).sort((a, b) => b.day - a.day)[0];
+      html += '<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-50 border border-brand-dark/5 rounded-lg px-3 py-2 text-sm gap-1">' +
+        '<div><span class="text-brand-dark font-medium">' + esc(c.name || 'بدون اسم') + '</span><span class="text-gray-500 font-mono mr-2" dir="ltr">' + esc(c.phone) + '</span></div>' +
+        '<div class="text-gray-600">اليوم ' + c.currentDay +
+        (latestSub && latestSub.status === 'reviewed' ? '<span class="text-green-500 mr-2">— آخر تقييم ' + latestSub.score + '/10</span>' : '') +
+        (latestSub && latestSub.status === 'pending' ? '<span class="text-yellow-500 mr-2">— في انتظار التقييم</span>' : '') +
+        '</div></div>';
+    });
+    html += '</div>';
+  }
+  html += '</div></div></div></div>';
+  return html;
+}
+
+/* --- Admin Tasks --- */
+function renderAdminTasks() {
+  const tasks = DB.getTasks();
+  const T = UI.adminTasks;
+  const nextDay = tasks.length > 0 ? Math.max.apply(null, tasks.map(t => t.day)) + 1 : 1;
+
+  let html = '<div class="space-y-8">' +
+    '<div class="flex flex-col md:flex-row justify-between items-start gap-4"><div>' +
+      '<h2 class="text-3xl font-bold text-brand-dark mb-2">إدارة مهام التقييم</h2>' +
+      '<p class="text-gray-600">يمكنك تعديل تفاصيل المهام، والأمثلة التوضيحية، وطريقة العمل</p></div>' +
+      '<button onclick="UI.adminTasks.isAdding=true; UI.adminTasks.editingId=null; rerender();" class="w-full md:w-auto justify-center bg-brand-light text-brand-dark hover:bg-[#f8f9fa] transition-colors font-bold py-2 px-4 rounded-xl flex items-center gap-2">' + icon('plus', 'w-5 h-5') + 'إضافة مهمة جديدة</button>' +
+    '</div>' +
+    '<div class="grid gap-6">';
+
+  if (T.isAdding) {
+    html += '<div class="bg-brand-blue/10 border border-brand-blue/30 rounded-2xl p-6"><div class="space-y-4">' +
+      '<div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-brand-blue">إضافة مهمة جديدة (اليوم ' + nextDay + ')</h3>' +
+      '<div class="flex gap-2"><button onclick="UI.adminTasks.isAdding=false; rerender();" class="p-2 text-gray-600 hover:text-brand-dark bg-[#f8f9fa] rounded-lg transition-colors">' + icon('x', 'w-5 h-5') + '</button>' +
+      '<button onclick="handleAddNewTask()" class="p-2 text-brand-dark bg-brand-light hover:bg-[#f8f9fa] rounded-lg transition-colors">' + icon('save', 'w-5 h-5') + '</button></div></div>' +
+      '<div class="grid gap-4">' +
+        '<div><label class="text-sm text-gray-600 mb-1 block">عنوان المهمة</label><input type="text" id="add-title" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light" placeholder="مثال: تجهيز خطة تسويقية..."></div>' +
+        '<div><label class="text-sm text-gray-600 mb-1 block">وصف المهمة</label><textarea id="add-desc" rows="3" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light resize-none" placeholder="اشرح المطلوب من المرشح بدقة..."></textarea></div>' +
+        '<div class="grid md:grid-cols-2 gap-4">' +
+          '<div><label class="text-sm text-gray-600 mb-1 block">رابط المثال التوضيحي (اختياري)</label><input type="url" id="add-example" dir="ltr" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light" placeholder="https://..."></div>' +
+          '<div><label class="text-sm text-gray-600 mb-1 block">رابط شرح طريقة العمل (اختياري)</label><input type="url" id="add-instruction" dir="ltr" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light" placeholder="https://..."></div>' +
+        '</div>' +
+      '</div></div></div>';
+  }
+
+  tasks.forEach(task => {
+    if (T.editingId === task.day) {
+      html += '<div class="bg-[#f8f9fa] border border-brand-dark/10 rounded-2xl p-6"><div class="space-y-4">' +
+        '<div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-brand-blue">تعديل اليوم ' + task.day + '</h3>' +
+        '<div class="flex gap-2"><button onclick="UI.adminTasks.editingId=null; rerender();" class="p-2 text-gray-600 hover:text-brand-dark bg-[#f8f9fa] rounded-lg transition-colors">' + icon('x', 'w-5 h-5') + '</button>' +
+        '<button onclick="handleSaveTask(\'' + task.id + '\', ' + task.day + ')" class="p-2 text-brand-dark bg-brand-light hover:bg-[#f8f9fa] rounded-lg transition-colors">' + icon('save', 'w-5 h-5') + '</button></div></div>' +
+        '<div class="grid gap-4">' +
+          '<div><label class="text-sm text-gray-600 mb-1 block">عنوان المهمة</label><input type="text" id="edit-title-' + task.day + '" value="' + esc(task.title) + '" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light"></div>' +
+          '<div><label class="text-sm text-gray-600 mb-1 block">وصف المهمة</label><textarea id="edit-desc-' + task.day + '" rows="3" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light resize-none">' + esc(task.description) + '</textarea></div>' +
+          '<div class="grid md:grid-cols-2 gap-4">' +
+            '<div><label class="text-sm text-gray-600 mb-1 block">رابط المثال التوضيحي</label><input type="url" id="edit-example-' + task.day + '" dir="ltr" value="' + esc(task.exampleLink) + '" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light"></div>' +
+            '<div><label class="text-sm text-gray-600 mb-1 block">رابط شرح طريقة العمل</label><input type="url" id="edit-instruction-' + task.day + '" dir="ltr" value="' + esc(task.instructionLink) + '" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light"></div>' +
+          '</div>' +
+        '</div></div></div>';
+    } else {
+      html += '<div class="bg-[#f8f9fa] border border-brand-dark/10 rounded-2xl p-6 transition-colors hover:border-brand-dark/20">' +
+        '<div class="flex justify-between items-start mb-4"><div><div class="text-sm text-brand-blue font-medium mb-1">اليوم ' + task.day + '</div>' +
+        '<h3 class="text-xl font-bold text-brand-dark">' + esc(task.title) + '</h3></div>' +
+        '<button onclick="UI.adminTasks.editingId=' + task.day + '; UI.adminTasks.isAdding=false; rerender();" class="p-2 text-gray-600 hover:text-brand-blue bg-[#f8f9fa] rounded-lg transition-colors">' + icon('edit', 'w-5 h-5') + '</button></div>' +
+        '<p class="text-gray-700 mb-4">' + esc(task.description) + '</p>' +
+        '<div class="flex flex-wrap gap-4 text-sm">' +
+          (task.exampleLink ? '<div class="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-brand-dark/5"><span class="text-gray-600">مثال:</span><a href="' + esc(task.exampleLink) + '" target="_blank" rel="noreferrer" class="text-brand-blue hover:underline truncate max-w-[200px]" dir="ltr">' + esc(task.exampleLink) + '</a></div>' : '') +
+          (task.instructionLink ? '<div class="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-brand-dark/5"><span class="text-gray-600">شرح:</span><a href="' + esc(task.instructionLink) + '" target="_blank" rel="noreferrer" class="text-brand-blue hover:underline truncate max-w-[200px]" dir="ltr">' + esc(task.instructionLink) + '</a></div>' : '') +
+        '</div></div>';
+    }
+  });
+
+  html += '</div></div>';
+  return html;
+}
+
+function handleAddNewTask() {
+  const tasks = DB.getTasks();
+  const nextDay = tasks.length > 0 ? Math.max.apply(null, tasks.map(t => t.day)) + 1 : 1;
+  const newTask = {
+    id: 'task_' + Date.now(), day: nextDay,
+    title: document.getElementById('add-title').value,
+    description: document.getElementById('add-desc').value,
+    exampleLink: document.getElementById('add-example').value,
+    instructionLink: document.getElementById('add-instruction').value,
+  };
+  DB.upsertTask(newTask);
+  UI.adminTasks.isAdding = false;
+  rerender();
+}
+function handleSaveTask(id, day) {
+  const updated = {
+    id, day,
+    title: document.getElementById('edit-title-' + day).value,
+    description: document.getElementById('edit-desc-' + day).value,
+    exampleLink: document.getElementById('edit-example-' + day).value,
+    instructionLink: document.getElementById('edit-instruction-' + day).value,
+  };
+  DB.upsertTask(updated);
+  UI.adminTasks.editingId = null;
+  rerender();
+}
+
+/* --- Admin Reviewers --- */
+function renderAdminReviewers() {
+  const reviewers = DB.getReviewers();
+  const users = DB.getUsers();
+  const R = UI.adminReviewers;
+  const accountManagers = reviewers.filter(r => r.isAccountManager);
+
+  let html = '<div class="space-y-8">' +
+    '<div class="flex flex-col md:flex-row justify-between items-start gap-4"><div>' +
+      '<h2 class="text-3xl font-bold text-brand-dark mb-2">إدارة المراجعين (Team Leaders)</h2>' +
+      '<p class="text-gray-600">إضافة أو إزالة الأشخاص المسؤولين عن مراجعة وتقييم المرشحين</p></div>' +
+      '<button onclick="UI.adminReviewers.isAdding=true; rerender();" class="w-full md:w-auto justify-center bg-brand-light text-brand-dark hover:bg-[#f8f9fa] transition-colors font-bold py-2 px-4 rounded-xl flex items-center gap-2">' + icon('plus', 'w-5 h-5') + 'إضافة مراجع جديد</button>' +
+    '</div>' +
+    '<div class="bg-[#f8f9fa] border border-brand-dark/10 rounded-2xl p-6">';
+
+  if (R.isAdding) {
+    let amOptions = '<option value="">بدون مدير / غير محدد</option>';
+    accountManagers.forEach(am => { amOptions += '<option value="' + am.id + '">' + esc(am.name) + '</option>'; });
+
+    html += '<div class="mb-6 p-4 bg-brand-blue/10 border border-brand-blue/30 rounded-xl flex flex-col gap-4">' +
+      '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">' +
+        '<div><label class="text-sm text-gray-600 mb-1 block">النوع</label>' +
+        '<select id="new-rev-role" onchange="UI.adminReviewers.role=this.value; rerender();" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light">' +
+          '<option value="reviewer"' + (R.role === 'reviewer' ? ' selected' : '') + '>تيم ليدر (Team Leader)</option>' +
+          '<option value="account_manager"' + (R.role === 'account_manager' ? ' selected' : '') + '>أكونت مانجر (Account Manager)</option>' +
+        '</select></div>' +
+        (R.role === 'reviewer' ? ('<div><label class="text-sm text-gray-600 mb-1 block">الأكونت مانجر التابع له</label>' +
+          '<select id="new-rev-manager" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light">' + amOptions + '</select></div>') : '') +
+        '<div><label class="text-sm text-gray-600 mb-1 block">الاسم</label><input type="text" id="new-rev-name" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light" placeholder="الاسم"></div>' +
+        '<div><label class="text-sm text-gray-600 mb-1 block">رقم الهاتف (للدخول)</label><input type="text" id="new-rev-phone" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light" placeholder="رقم الهاتف"></div>' +
+        '<div><label class="text-sm text-gray-600 mb-1 block">كلمة المرور</label><input type="text" id="new-rev-password" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light" placeholder="كلمة المرور"></div>' +
+      '</div>' +
+      '<div class="flex justify-end gap-2 mt-2">' +
+        '<button onclick="UI.adminReviewers.isAdding=false; rerender();" class="px-6 py-2 text-gray-600 hover:text-brand-dark bg-[#f8f9fa] rounded-xl transition-colors">إلغاء</button>' +
+        '<button onclick="handleAddReviewer()" class="px-6 py-2 text-brand-dark bg-brand-light hover:bg-[#f8f9fa] rounded-xl transition-colors font-bold">حفظ وإنشاء حساب</button>' +
+      '</div></div>';
+  }
+
+  html += '<div class="grid gap-3">';
+  if (reviewers.length === 0) {
+    html += '<div class="text-center p-8 text-gray-500">لا يوجد مراجعين حالياً</div>';
+  } else {
+    reviewers.forEach(reviewer => {
+      const managerName = reviewer.managerId ? (reviewers.find(r => r.id === reviewer.managerId) || {}).name : null;
+      html += '<div class="flex items-center justify-between p-4 bg-gray-50 border border-brand-dark/5 rounded-xl hover:bg-[#f8f9fa] transition-colors">' +
+        '<div><div class="text-brand-dark font-medium text-lg">' + esc(reviewer.name) +
+        '<span class="text-sm text-brand-blue mr-3 px-2 py-0.5 bg-brand-blue/10 rounded-lg">' + (reviewer.isAccountManager ? 'أكونت مانجر' : 'تيم ليدر') + '</span></div>' +
+        (!reviewer.isAccountManager && managerName ? '<div class="text-sm text-gray-600 mt-1">المدير: ' + esc(managerName) + '</div>' : '') + '</div>' +
+        '<button onclick="handleDeleteReviewer(\'' + reviewer.id + '\')" class="text-red-400 hover:text-red-500 p-2 hover:bg-red-500/10 rounded-lg transition-colors" title="حذف">' + icon('trash', 'w-5 h-5') + '</button>' +
+      '</div>';
+    });
+  }
+  html += '</div></div></div>';
+  return html;
+}
+
+async function handleAddReviewer() {
+  const name = document.getElementById('new-rev-name').value.trim();
+  const phone = document.getElementById('new-rev-phone').value.trim();
+  const password = document.getElementById('new-rev-password').value.trim();
+  const role = UI.adminReviewers.role;
+  const managerSelect = document.getElementById('new-rev-manager');
+  const managerId = managerSelect ? managerSelect.value : '';
+
+  if (!name || !phone || !password) return;
+  const users = DB.getUsers();
+  if (users.find(u => u.phone === phone)) { alert('رقم الهاتف مسجل بالفعل'); return; }
+
+  const revId = 'rev_' + Date.now();
+  const newReviewer = { id: revId, name, isAccountManager: role === 'account_manager' };
+  if (role === 'reviewer' && managerId) newReviewer.managerId = managerId;
+
+  const revSaved = await DB.upsertReviewer(newReviewer);
+  const userSaved = await DB.upsertUser({ id: revId, phone, passwordHash: password, role, name, currentDay: 1 });
+
+  if (!revSaved || !userSaved) {
+    alert('البيانات اتحفظت على الجهاز ده بس، ولسه ما وصلتش للسيرفر (ممكن يكون في مشكلة في النت). لو قفلت وفتحت تاني دلوقتي ممكن تلاقيه اختفى. اتأكد من الاتصال بالإنترنت وحاول تضيفه تاني.');
+  }
+
+  UI.adminReviewers.isAdding = false;
+  UI.adminReviewers.role = 'reviewer';
+  rerender();
+}
+async function handleDeleteReviewer(id) {
+  if (!confirm('هل أنت متأكد من مسح هذا الحساب؟ لن يمكن استرجاع بياناته، وهيتم تحرير رقم الهاتف بتاعه عشان يقدر يتسجل بيه تاني لو حصل.')) return;
+  const revDeleted = await pushDelete('reviewers', id);
+  const userDeleted = await pushDelete('users', id);
+  if (!revDeleted || !userDeleted) {
+    alert('الحذف لم يتم بالكامل على السيرفر (تأكد من الاتصال بالإنترنت)، فالحساب لسه موجود فعلياً هناك. حاول تاني، ولو المشكلة استمرت متعمليش حساب جديد بنفس رقم التليفون لحد ما تتأكد إن القديم اتمسح خالص — عشان كدا كانت بتظهر رسالة "الرقم مسجل بالفعل" حتى بعد ما بيبان إنه اتمسح.');
+    return;
+  }
+  DB.saveReviewers(DB.getReviewers().filter(r => r.id !== id));
+  DB.saveUsers(DB.getUsers().filter(u => u.id !== id));
+  rerender();
+}
+
+/* ============================================================
+   ADMIN — TEACHER PAGES (showcase for trainees)
+   ============================================================ */
+function renderAdminTeacherPages() {
+  const pages = DB.getTeacherPages();
+  const T = UI.adminTeachers;
+  const editingItem = T.editingId ? pages.find(p => p.id === T.editingId) : null;
+
+  let html = '<div class="space-y-8">' +
+    '<div class="flex flex-col md:flex-row justify-between items-start gap-4"><div>' +
+      '<h2 class="text-3xl font-bold text-brand-dark mb-2">صفحات المدرسين</h2>' +
+      '<p class="text-gray-600">أضف حتى 5 صفحات مدرسين يقدر المتدرب يشوفها كأمثلة لشغل حقيقي</p></div>' +
+      (pages.length < 5 && !T.isAdding ? '<button onclick="UI.adminTeachers.isAdding=true; UI.adminTeachers.editingId=null; UI.adminTeachers.photoData=\'\'; rerender();" class="w-full md:w-auto justify-center bg-brand-light text-brand-dark hover:bg-[#f8f9fa] transition-colors font-bold py-2 px-4 rounded-xl flex items-center gap-2">' + icon('plus', 'w-5 h-5') + 'إضافة صفحة</button>' : '') +
+    '</div>' +
+    '<div class="bg-[#f8f9fa] border border-brand-dark/10 rounded-2xl p-6">';
+
+  if (T.isAdding) {
+    const currentPhoto = T.photoData || (editingItem ? editingItem.photo : '');
+    html += '<div class="mb-6 p-4 bg-brand-blue/10 border border-brand-blue/30 rounded-xl flex flex-col gap-4">' +
+      '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">' +
+        '<div><label class="text-sm text-gray-600 mb-1 block">اسم المدرس</label><input type="text" id="teacher-name" value="' + (editingItem ? esc(editingItem.name) : '') + '" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light" placeholder="اسم المدرس"></div>' +
+        '<div><label class="text-sm text-gray-600 mb-1 block">عدد المتابعين</label><input type="number" id="teacher-followers" value="' + (editingItem ? esc(editingItem.followers) : '') + '" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light" placeholder="مثال: 15000"></div>' +
+        '<div class="md:col-span-2"><label class="text-sm text-gray-600 mb-1 block">لينك صفحة الفيسبوك</label><input type="url" dir="ltr" id="teacher-link" value="' + (editingItem ? esc(editingItem.pageLink) : '') + '" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark focus:outline-none focus:border-brand-light text-left" placeholder="https://facebook.com/..."></div>' +
+        '<div class="md:col-span-2"><label class="text-sm text-gray-600 mb-1 block">صورة البروفايل</label>' +
+          '<input type="file" id="teacher-photo" accept="image/*" onchange="handleTeacherPhotoSelected(event)" class="w-full bg-gray-50 border border-brand-dark/10 rounded-xl px-4 py-2 text-brand-dark text-sm">' +
+          '<p id="teacher-photo-status" class="text-xs text-gray-500 mt-2">هيتم ضغط الصورة تلقائياً.' + (editingItem && editingItem.photo ? ' سيبها فاضية لو مش عايز تغير الصورة الحالية.' : '') + '</p>' +
+          '<div id="teacher-photo-preview" class="mt-2">' + (currentPhoto ? '<img src="' + currentPhoto + '" class="w-16 h-16 rounded-full object-cover border border-gray-200">' : '') + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="flex justify-end gap-2 mt-2">' +
+        '<button onclick="UI.adminTeachers.isAdding=false; UI.adminTeachers.editingId=null; UI.adminTeachers.photoData=\'\'; rerender();" class="px-6 py-2 text-gray-600 hover:text-brand-dark bg-[#f8f9fa] rounded-xl transition-colors">إلغاء</button>' +
+        '<button onclick="handleSaveTeacherPage()" class="px-6 py-2 text-brand-dark bg-brand-light hover:bg-[#f8f9fa] rounded-xl transition-colors font-bold">حفظ</button>' +
+      '</div></div>';
+  }
+
+  html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">';
+  if (pages.length === 0) {
+    html += '<div class="col-span-full text-center p-8 text-gray-500">لا يوجد صفحات مضافة حالياً</div>';
+  } else {
+    pages.forEach(p => {
+      html += '<div class="flex items-center justify-between p-4 bg-gray-50 border border-brand-dark/5 rounded-xl hover:bg-[#f8f9fa] transition-colors">' +
+        '<div class="flex items-center gap-3">' +
+          (p.photo ? '<img src="' + p.photo + '" class="w-12 h-12 rounded-full object-cover border border-gray-200">' : '<div class="w-12 h-12 rounded-full bg-brand-blue/10 text-brand-blue flex items-center justify-center font-bold">' + esc((p.name || '?').charAt(0)) + '</div>') +
+          '<div><div class="text-brand-dark font-medium">' + esc(p.name) + '</div>' +
+          '<div class="text-sm text-gray-500">' + formatFollowers(p.followers) + ' متابع</div></div>' +
+        '</div>' +
+        '<div class="flex items-center gap-1">' +
+          '<button onclick="UI.adminTeachers.isAdding=true; UI.adminTeachers.editingId=\'' + p.id + '\'; UI.adminTeachers.photoData=\'\'; rerender();" class="text-brand-blue hover:text-navy-700 p-2 hover:bg-brand-blue/10 rounded-lg transition-colors" title="تعديل">' + icon('edit', 'w-5 h-5') + '</button>' +
+          '<button onclick="handleDeleteTeacherPage(\'' + p.id + '\')" class="text-red-400 hover:text-red-500 p-2 hover:bg-red-500/10 rounded-lg transition-colors" title="حذف">' + icon('trash', 'w-5 h-5') + '</button>' +
+        '</div></div>';
+    });
+  }
+  html += '</div></div></div>';
+  return html;
+}
+
+function formatFollowers(n) {
+  n = Number(n) || 0;
+  if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  return String(n);
+}
+
+async function handleTeacherPhotoSelected(e) {
+  const file = e.target.files && e.target.files[0];
+  const statusEl = document.getElementById('teacher-photo-status');
+  const previewEl = document.getElementById('teacher-photo-preview');
+  UI.adminTeachers.photoData = '';
+  if (!file) return;
+  if (statusEl) { statusEl.textContent = 'جاري ضغط الصورة...'; statusEl.className = 'text-xs text-gray-500 mt-2'; }
+  try {
+    const compressed = await compressImageFile(file);
+    if (compressed && compressed.length > PHOTO_MAX_BASE64_CHARS) {
+      if (statusEl) { statusEl.textContent = 'الصورة كبيرة جداً حتى بعد الضغط، اختار صورة أصغر.'; statusEl.className = 'text-xs text-danger mt-2 font-medium'; }
+      e.target.value = '';
+      return;
+    }
+    UI.adminTeachers.photoData = compressed || '';
+    if (statusEl) { statusEl.textContent = 'تم تجهيز الصورة بنجاح ✓'; statusEl.className = 'text-xs text-success mt-2 font-medium'; }
+    if (previewEl) previewEl.innerHTML = '<img src="' + compressed + '" class="w-16 h-16 rounded-full object-cover border border-gray-200">';
+  } catch (err) {
+    if (statusEl) { statusEl.textContent = 'تعذر تجهيز الصورة، جرب صورة تانية.'; statusEl.className = 'text-xs text-danger mt-2 font-medium'; }
+    e.target.value = '';
+  }
+}
+
+async function handleSaveTeacherPage() {
+  const name = (document.getElementById('teacher-name').value || '').trim();
+  const followers = document.getElementById('teacher-followers').value;
+  const pageLink = (document.getElementById('teacher-link').value || '').trim();
+  const T = UI.adminTeachers;
+  const pages = DB.getTeacherPages();
+  const editingItem = T.editingId ? pages.find(p => p.id === T.editingId) : null;
+
+  if (!name || !pageLink) { alert('من فضلك أكمل اسم المدرس ولينك الصفحة على الأقل'); return; }
+  if (!editingItem && pages.length >= 5) { alert('وصلت للحد الأقصى (5 صفحات)'); return; }
+
+  const photo = T.photoData || (editingItem ? editingItem.photo : '') || '';
+  const item = {
+    id: editingItem ? editingItem.id : ('teacher_' + Date.now()),
+    name, followers: Number(followers) || 0, pageLink, photo,
+  };
+  const saved = await DB.upsertTeacherPage(item);
+  if (!saved) {
+    alert('الصفحة اتحفظت على الجهاز ده بس، ولسه ما وصلتش للسيرفر (ممكن يكون في مشكلة في النت). لو قفلت وفتحت تاني دلوقتي ممكن تلاقيها اختفت. اتأكد من الاتصال بالإنترنت وحاول تحفظها تاني.');
+  }
+
+  T.isAdding = false; T.editingId = null; T.photoData = '';
+  rerender();
+}
+function handleDeleteTeacherPage(id) {
+  if (!confirm('هل أنت متأكد من مسح الصفحة دي؟')) return;
+  DB.deleteTeacherPage(id);
+  rerender();
+}
+
+
+/* ============================================================
+   REVIEWER DASHBOARD (Team Leader)
+   ============================================================ */
+function renderReviewerDashboard(sessionUser) {
+  const users = DB.getUsers();
+  const submissions = DB.getSubmissions();
+  const tasks = DB.getTasks();
+  const currentUser = users.find(u => u.id === sessionUser.id) || sessionUser;
+  const assignedCandidates = users.filter(u => u.status === 'approved' && u.reviewerId === currentUser.id);
+  const assignedIds = assignedCandidates.map(u => u.id);
+  const mySubmissions = submissions.filter(s => assignedIds.includes(s.userId));
+  const pendingReviewCount = mySubmissions.filter(s => s.status === 'pending').length;
+  const reviewedSubmissions = mySubmissions.filter(s => s.status === 'reviewed' && typeof s.score === 'number');
+  const avgScore = reviewedSubmissions.length ? (reviewedSubmissions.reduce((sum, s) => sum + s.score, 0) / reviewedSubmissions.length) : null;
+
+  let html = DashboardHeader({ subtitle: 'لوحة تحكم التيم ليدر', user: currentUser }) +
+    '<div class="max-w-7xl mx-auto space-y-8 p-4 md:p-8">' +
+    '<div><h1 class="font-display text-2xl font-bold text-brand-dark">مرحباً، ' + esc(currentUser.name) + '</h1>' +
+    '<p class="text-gray-500 mt-1">تقدر تراجع وتقيّم شغل المتدربين التابعين لك من هنا</p></div>' +
+    '<div class="grid grid-cols-1 md:grid-cols-3 gap-4">' +
+      '<div class="bg-[#f8f9fa] border border-brand-dark/10 rounded-2xl p-6 flex flex-col justify-center items-center"><span class="text-gray-600 text-sm mb-1">المتدربين التابعين لك</span><span class="text-3xl font-bold text-brand-dark">' + assignedCandidates.length + '</span></div>' +
+      '<div class="' + (pendingReviewCount > 0 ? 'bg-orange-50 border-orange-300' : 'bg-[#f8f9fa] border-brand-dark/10') + ' border rounded-2xl p-6 flex flex-col justify-center items-center">' +
+        '<span class="text-gray-600 text-sm mb-1">تسليمات في انتظار تقييمك</span>' +
+        '<span class="text-3xl font-bold ' + (pendingReviewCount > 0 ? 'text-orange-500' : 'text-brand-dark') + '">' + pendingReviewCount + '</span>' +
+      '</div>' +
+      '<div class="bg-[#f8f9fa] border border-brand-dark/10 rounded-2xl p-6 flex flex-col justify-center items-center"><span class="text-gray-600 text-sm mb-1">متوسط الدرجة اللي بتدّيها</span><span class="text-3xl font-bold text-green-500">' + (avgScore !== null ? avgScore.toFixed(1) + '/10' : '-') + '</span></div>' +
+    '</div>' +
+    '<div class="bg-white border border-brand-dark/10 rounded-2xl overflow-hidden">' +
+    '<div class="p-6 border-b border-brand-dark/10"><h2 class="text-xl font-bold text-brand-dark">المتدربين التابعين لك (' + assignedCandidates.length + ')</h2></div>' +
+    '<div class="overflow-x-auto"><table class="w-full text-right"><thead class="bg-gray-50 text-gray-600 text-sm"><tr>' +
+    '<th class="px-6 py-4 font-medium">الاسم / الرقم</th><th class="px-6 py-4 font-medium">اليوم الحالي</th><th class="px-6 py-4 font-medium">آخر تسليم</th><th class="px-6 py-4 font-medium">التقييم</th><th class="px-6 py-4 font-medium">الإجراءات</th>' +
+    '</tr></thead><tbody class="divide-y divide-white/5">';
+
+  if (assignedCandidates.length === 0) {
+    html += '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">لا يوجد متدربين مخصصين لك حالياً</td></tr>';
+  } else {
+    assignedCandidates.forEach(user => {
+      html += renderTraineeRow(user, submissions, tasks);
+    });
+  }
+  html += '</tbody></table></div></div></div>';
+  return html;
+}
+
+function renderTraineeRow(user, submissions, tasks) {
+  const userSubmissions = submissions.filter(s => s.userId === user.id);
+  const latestSubmission = userSubmissions.length > 0 ? userSubmissions.reduce((prev, cur) => (prev.day > cur.day ? prev : cur)) : null;
+  const currentTask = tasks.find(t => t.day === user.currentDay);
+
+  let html = '<tr class="hover:bg-[#f8f9fa] transition-colors">' +
+    '<td class="px-6 py-4">' + profileTriggerHtml(user, '<div class="flex items-center gap-3">' + avatarHtml(user) + '<div><div class="font-bold text-brand-dark">' + esc(user.name) + '</div><div class="text-gray-600 text-sm font-mono" dir="ltr">' + esc(user.phone) + '</div></div></div>') + '<div class="mt-2">' + socialButtonsHtml(user) + '</div></td>' +
+    '<td class="px-6 py-4"><div class="text-brand-blue font-medium">اليوم ' + user.currentDay + '</div><div class="text-gray-600 text-sm">' + esc(currentTask ? currentTask.title : '') + '</div></td>' +
+    '<td class="px-6 py-4">';
+  if (latestSubmission) {
+    html += '<div class="space-y-1"><a href="' + esc(latestSubmission.driveLink) + '" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-500 hover:underline">' +
+      '<span>رابط التسليم (اليوم ' + latestSubmission.day + ')</span>' + icon('externalLink', 'w-3 h-3') + '</a>' +
+      '<div class="text-xs text-gray-500">' + fmtDate(latestSubmission.submittedAt) + '</div></div>';
+  } else {
+    html += '<span class="text-gray-500">لم يسلم بعد</span>';
+  }
+  html += '</td><td class="px-6 py-4">';
+  if (latestSubmission && latestSubmission.status === 'reviewed') {
+    html += '<div class="flex items-center gap-2 text-green-600">' + icon('check', 'w-4 h-4') + '<span class="font-bold">' + latestSubmission.score + '/10</span></div>';
+  } else if (latestSubmission) {
+    html += '<span class="text-yellow-600 text-sm">في انتظار التقييم</span>';
+  } else {
+    html += '<span class="text-gray-500">-</span>';
+  }
+  html += '</td><td class="px-6 py-4">';
+  if (latestSubmission && latestSubmission.status === 'pending') {
+    html += '<div class="flex flex-wrap gap-2 items-center">' +
+      '<input type="number" min="0" max="10" placeholder="الدرجة" class="w-20 bg-gray-50 border border-brand-dark/10 rounded-lg px-2 py-1 text-brand-dark focus:outline-none focus:border-brand-light text-center" id="score-' + latestSubmission.id + '">' +
+      '<input type="text" placeholder="ملاحظات..." class="w-40 bg-gray-50 border border-brand-dark/10 rounded-lg px-2 py-1 text-brand-dark focus:outline-none focus:border-brand-light" id="feedback-' + latestSubmission.id + '">' +
+      '<button onclick="handleInlineReview(\'' + latestSubmission.id + '\')" class="p-1.5 bg-brand-light text-brand-dark hover:bg-[#f8f9fa] rounded-lg transition-colors font-medium text-sm">تقييم</button>' +
+    '</div>';
+  }
+  html += '</td></tr>';
+  return html;
+}
+
+function handleInlineReview(submissionId) {
+  const scoreInput = document.getElementById('score-' + submissionId);
+  const feedbackInput = document.getElementById('feedback-' + submissionId);
+  if (!scoreInput.value) return;
+  const subs = DB.getSubmissions();
+  const s = subs.find(sub => sub.id === submissionId);
+  if (s) { s.status = 'reviewed'; s.score = Number(scoreInput.value); s.feedback = feedbackInput.value; DB.upsertSubmission(s); }
+  rerender();
+}
+
+/* ============================================================
+   ACCOUNT MANAGER DASHBOARD
+   ============================================================ */
+function renderAccountManagerDashboard(sessionUser) {
+  const users = DB.getUsers();
+  const submissions = DB.getSubmissions();
+  const tasks = DB.getTasks();
+  const reviewers = DB.getReviewers();
+  const currentUser = users.find(u => u.id === sessionUser.id) || sessionUser;
+  const AM = UI.accountManager;
+
+  const pendingUsers = users.filter(u => u.status === 'pending_approval' && (u.assignedAmId === currentUser.id || !u.assignedAmId));
+  const myTeamLeaders = reviewers.filter(r => r.managerId === currentUser.id);
+  const myTrainersIds = [currentUser.id].concat(myTeamLeaders.map(t => t.id));
+  const myTeamCandidates = users.filter(u => u.status === 'approved' && myTrainersIds.includes(u.reviewerId));
+  const myDirectCandidates = users.filter(u => u.status === 'approved' && u.reviewerId === currentUser.id);
+
+  let html = DashboardHeader({ subtitle: 'لوحة تحكم الأكونت مانجر', user: currentUser }) +
+    '<div class="max-w-7xl mx-auto space-y-8 p-4 md:p-8">' +
+    '<div><h1 class="font-display text-2xl font-bold text-brand-dark">مرحباً، ' + esc(currentUser.name) + '</h1></div>' +
+    (function(){
+      const amDirectCount = myDirectCandidates.length;
+      const amCap = computeAmDirectCap(currentUser.id);
+      const amAtCap = amDirectCount >= amCap;
+      return '<div class="grid grid-cols-1 md:grid-cols-4 gap-4">' +
+        '<div class="bg-[#f8f9fa] border border-brand-dark/10 rounded-2xl p-6 flex flex-col justify-center items-center"><span class="text-gray-600 text-sm mb-1">المتقدمين الجدد</span><span class="text-3xl font-bold text-yellow-500">' + pendingUsers.length + '</span></div>' +
+        '<div class="bg-[#f8f9fa] border border-brand-dark/10 rounded-2xl p-6 flex flex-col justify-center items-center"><span class="text-gray-600 text-sm mb-1">التيم ليدرز في فريقي</span><span class="text-3xl font-bold text-blue-500">' + myTeamLeaders.length + '</span></div>' +
+        '<div class="bg-[#f8f9fa] border border-brand-dark/10 rounded-2xl p-6 flex flex-col justify-center items-center"><span class="text-gray-600 text-sm mb-1">إجمالي المتدربين (للفريق)</span><span class="text-3xl font-bold text-green-500">' + myTeamCandidates.length + '</span></div>' +
+        '<div class="' + (amAtCap ? 'bg-orange-50 border-orange-300' : 'bg-[#f8f9fa] border-brand-dark/10') + ' border rounded-2xl p-6 flex flex-col justify-center items-center">' +
+          '<span class="text-gray-600 text-sm mb-1">متدربيك المباشرين</span>' +
+          '<span class="text-3xl font-bold ' + (amAtCap ? 'text-orange-500' : 'text-brand-dark') + '">' + amDirectCount + '<span class="text-lg text-gray-400">/' + amCap + '</span></span>' +
+          (amAtCap ? '<span class="text-xs text-orange-500 mt-1 font-medium">وصلت للحد الأقصى</span>' : '<span class="text-xs text-gray-400 mt-1">الحد الأقصى ' + amCap + ' متدربين مباشرين</span>') +
+        '</div>' +
+      '</div>';
+    })() +
+    '<div class="bg-[#f8f9fa] border border-brand-dark/10 rounded-2xl overflow-hidden">' +
+    '<div class="p-4 border-b border-brand-dark/10 flex gap-2 flex-wrap">' +
+      '<button onclick="UI.accountManager.activeTab=\'pending\'; rerender();" class="px-4 py-2 rounded-lg font-medium transition-colors ' + (AM.activeTab === 'pending' ? 'bg-brand-light text-brand-dark' : 'text-gray-600 hover:bg-[#f8f9fa] hover:text-brand-dark') + '">طلبات الانضمام (' + pendingUsers.length + ')</button>' +
+      '<button onclick="UI.accountManager.activeTab=\'my_team\'; rerender();" class="px-4 py-2 rounded-lg font-medium transition-colors ' + (AM.activeTab === 'my_team' ? 'bg-brand-light text-brand-dark' : 'text-gray-600 hover:bg-[#f8f9fa] hover:text-brand-dark') + '">فريقي المباشر (' + myDirectCandidates.length + ')</button>' +
+      '<button onclick="UI.accountManager.activeTab=\'my_leaders\'; rerender();" class="px-4 py-2 rounded-lg font-medium transition-colors ' + (AM.activeTab === 'my_leaders' ? 'bg-brand-light text-brand-dark' : 'text-gray-600 hover:bg-[#f8f9fa] hover:text-brand-dark') + '">التيم ليدرز (' + myTeamLeaders.length + ')</button>' +
+    '</div><div class="p-0">';
+
+  if (AM.activeTab === 'pending') {
+    html += '<div class="overflow-x-auto"><table class="w-full text-right"><thead class="bg-gray-50 text-gray-600 text-sm"><tr>' +
+      '<th class="px-6 py-4 font-medium">الاسم / الرقم</th><th class="px-6 py-4 font-medium">الخبرة</th><th class="px-6 py-4 font-medium">فكرة التريند</th><th class="px-6 py-4 font-medium text-center">الإجراء</th>' +
+      '</tr></thead><tbody class="divide-y divide-white/5">';
+    if (pendingUsers.length === 0) {
+      html += '<tr><td colspan="4" class="px-6 py-8 text-center text-gray-500">لا يوجد طلبات جديدة</td></tr>';
+    } else {
+      pendingUsers.forEach(user => {
+        html += '<tr class="hover:bg-[#f8f9fa] transition-colors">' +
+          '<td class="px-6 py-4">' + profileTriggerHtml(user, '<div class="flex items-center gap-3">' + avatarHtml(user) + '<div><div class="font-bold text-brand-dark">' + esc(user.name) + '</div><div class="text-gray-600 text-sm font-mono" dir="ltr">' + esc(user.phone) + '</div><div class="text-xs text-gray-500 mt-1">العمر: ' + esc(user.age) + (user.dailyHours ? ' / ' + esc(user.dailyHours) + ' يومياً' : '') + '</div>' + (!user.assignedAmId ? '<div class="text-xs text-warning mt-1">غير محول لأكونت مانجر محدد</div>' : '') + '</div></div>') + '<div class="mt-2">' + socialButtonsHtml(user) + '</div></td>' +
+          '<td class="px-6 py-4">' + (user.hasExperience ? (
+            '<div class="text-brand-dark max-w-xs truncate" title="' + esc(user.experience) + '">' + esc(user.experience) + '</div><div class="text-sm text-brand-blue">' + esc(user.yearsOfExperience) + ' سنوات خبرة</div>' +
+            (user.portfolioLink ? '<a href="' + esc(user.portfolioLink) + '" target="_blank" rel="noreferrer" class="text-xs text-blue-600 hover:underline mt-1 block">البورتفوليو</a>' : '')
+          ) : '<div class="text-gray-500 text-sm">لا يوجد خبرة سابقة</div>') + '</td>' +
+          '<td class="px-6 py-4"><div class="text-gray-700 max-w-xs truncate" title="' + esc(user.trendIdea) + '">' + esc(user.trendIdea) + '</div></td>' +
+          '<td class="px-6 py-4"><div class="flex justify-center gap-2">' +
+            '<button onclick="handleAMApprove(\'' + user.id + '\')" class="p-2 bg-green-500/20 text-green-600 hover:bg-green-500 hover:text-white rounded-lg transition-colors" title="قبول">' + icon('userCheck', 'w-5 h-5') + '</button>' +
+            '<button onclick="handleRejectCandidate(\'' + user.id + '\')" class="p-2 bg-red-500/20 text-red-600 hover:bg-red-500 hover:text-white rounded-lg transition-colors" title="رفض">' + icon('userX', 'w-5 h-5') + '</button>' +
+          '</div></td></tr>';
+      });
+    }
+    html += '</tbody></table></div>';
+  } else if (AM.activeTab === 'my_team') {
+    html += '<div class="overflow-x-auto"><table class="w-full text-right"><thead class="bg-gray-50 text-gray-600 text-sm"><tr>' +
+      '<th class="px-6 py-4 font-medium">الاسم / الرقم</th><th class="px-6 py-4 font-medium">اليوم الحالي</th><th class="px-6 py-4 font-medium">آخر تسليم</th><th class="px-6 py-4 font-medium">التقييم</th><th class="px-6 py-4 font-medium">الإجراءات</th>' +
+      '</tr></thead><tbody class="divide-y divide-white/5">';
+    if (myDirectCandidates.length === 0) {
+      html += '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">لا يوجد متدربين مخصصين لك حالياً</td></tr>';
+    } else {
+      myDirectCandidates.forEach(user => { html += renderTraineeRow(user, submissions, tasks); });
+    }
+    html += '</tbody></table></div>';
+  } else if (AM.activeTab === 'my_leaders') {
+    html += '<div class="p-6 space-y-6">';
+    if (myTeamLeaders.length === 0) {
+      html += '<div class="text-center p-8 text-gray-500">لا يوجد تيم ليدرز تحت إدارتك حالياً</div>';
+    } else {
+      myTeamLeaders.forEach(leader => {
+        const leaderUser = users.find(u => u.id === leader.id);
+        const leaderCandidates = users.filter(u => u.status === 'approved' && u.reviewerId === leader.id);
+        html += '<div class="bg-white border border-brand-dark/10 rounded-2xl overflow-hidden">';
+        // Leader header
+        html += '<div class="p-4 bg-gray-50 border-b border-brand-dark/10 flex items-center justify-between">' +
+          '<div class="flex items-center gap-3">' + avatarHtml(leaderUser || leader) +
+          '<div><div class="font-bold text-brand-dark text-lg">' + esc(leader.name) + '</div>' +
+          '<div class="text-sm text-brand-blue">تيم ليدر · يدرب ' + leaderCandidates.length + ' متدرب</div></div></div>' +
+          (leaderUser ? '<div>' + socialButtonsHtml(leaderUser) + '</div>' : '') +
+          '</div>';
+        // Trainees table
+        if (leaderCandidates.length === 0) {
+          html += '<div class="p-6 text-center text-gray-500 text-sm">لا يوجد متدربين تحت هذا التيم ليدر حالياً</div>';
+        } else {
+          html += '<div class="overflow-x-auto"><table class="w-full text-right"><thead class="bg-gray-50 text-gray-600 text-xs"><tr>' +
+            '<th class="px-4 py-3 font-medium">المتدرب</th><th class="px-4 py-3 font-medium">اليوم الحالي</th><th class="px-4 py-3 font-medium">آخر تسليم</th><th class="px-4 py-3 font-medium">التقييم</th>' +
+            '</tr></thead><tbody class="divide-y divide-gray-100">';
+          leaderCandidates.forEach(candidate => {
+            const candSubs = submissions.filter(s => s.userId === candidate.id).sort((a, b) => b.day - a.day);
+            const latestSub = candSubs[0];
+            const currentTask = tasks.find(t => t.day === candidate.currentDay);
+            html += '<tr class="hover:bg-gray-50 transition-colors">' +
+              '<td class="px-4 py-3">' + profileTriggerHtml(candidate,
+                '<div class="flex items-center gap-2">' + avatarHtml(candidate, 'w-8 h-8') +
+                '<div><div class="font-medium text-brand-dark text-sm">' + esc(candidate.name) + '</div>' +
+                '<div class="text-xs text-gray-500 font-mono" dir="ltr">' + esc(candidate.phone) + '</div></div></div>') +
+                '<div class="mt-1">' + socialButtonsHtml(candidate) + '</div>' +
+              '</td>' +
+              '<td class="px-4 py-3"><div class="text-brand-blue text-sm font-medium">اليوم ' + candidate.currentDay + '</div>' +
+              '<div class="text-xs text-gray-500">' + esc(currentTask ? currentTask.title : '') + '</div></td>' +
+              '<td class="px-4 py-3">' + (latestSub ?
+                '<a href="' + esc(latestSub.driveLink) + '" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-600 hover:underline flex items-center gap-1">تسليم يوم ' + latestSub.day + icon('externalLink', 'w-3 h-3') + '</a>' +
+                '<div class="text-xs text-gray-500 mt-1">' + fmtDate(latestSub.submittedAt) + '</div>' :
+                '<span class="text-xs text-gray-400">لم يسلم بعد</span>') + '</td>' +
+              '<td class="px-4 py-3">' + (latestSub && latestSub.status === 'reviewed' ?
+                '<span class="text-green-600 font-bold text-sm">' + latestSub.score + '/10</span>' :
+                latestSub ? '<span class="text-yellow-500 text-xs">في انتظار التقييم</span>' :
+                '<span class="text-gray-400 text-xs">-</span>') + '</td>' +
+              '</tr>';
+          });
+          html += '</tbody></table></div>';
+        }
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+  }
+
+  html += '</div></div></div>';
+  return html;
+}
+
+/* Average workload per person in an account manager's org: everyone approved under their whole org
+   (themselves + their team leaders) plus any pending applications already routed to them and awaiting
+   a decision, divided by the org size (AM + their team leaders). This is per-capita on purpose — an AM
+   with 2 team leaders can absorb proportionally more total candidates than an AM with only 1 team leader
+   before being considered equally "loaded", since the same total gets split over more people. */
+function computeAmLoad(amId) {
+  const users = DB.getUsers();
+  const reviewers = DB.getReviewers();
+  const teamLeaderIds = reviewers.filter(r => r.managerId === amId).map(r => r.id);
+  const orgIds = [amId].concat(teamLeaderIds);
+  const approvedCount = users.filter(u => u.status === 'approved' && orgIds.includes(u.reviewerId)).length;
+  const pendingAssignedCount = users.filter(u => u.status === 'pending_approval' && u.assignedAmId === amId).length;
+  const orgSize = orgIds.length; // AM + their team leaders
+  return (approvedCount + pendingAssignedCount) / orgSize;
+}
+function pickLeastLoadedAccountManager() {
+  const reviewers = DB.getReviewers();
+  const accountManagers = reviewers.filter(r => r.isAccountManager);
+  if (accountManagers.length === 0) return null;
+  let bestId = accountManagers[0].id;
+  let bestLoad = computeAmLoad(bestId);
+  accountManagers.forEach(am => {
+    const load = computeAmLoad(am.id);
+    if (load < bestLoad) { bestLoad = load; bestId = am.id; }
+  });
+  return bestId;
+}
+
+/* Try to place a candidate within one AM's org (their TLs, then the AM last — TLs win ties).
+   Respects each TL's TL_DIRECT_CAP and the AM's own computeAmDirectCap. Returns a reviewerId,
+   or null if everyone in this org (AM + all TLs) is already at their cap. */
+function findAssignmentInOrg(amId, allUsers, reviewers) {
+  const amTeamLeaders = reviewers.filter(r => r.managerId === amId);
+  const amReviewer = reviewers.find(r => r.id === amId);
+  const allTrainers = amTeamLeaders.concat(amReviewer ? [amReviewer] : []);
+  if (allTrainers.length === 0) return null;
+
+  const activeCandidates = allUsers.filter(u => u.status === 'approved' && allTrainers.map(t => t.id).includes(u.reviewerId));
+  const reviewerCounts = {};
+  allTrainers.forEach(r => reviewerCounts[r.id] = 0);
+  activeCandidates.forEach(c => { if (c.reviewerId && reviewerCounts[c.reviewerId] !== undefined) reviewerCounts[c.reviewerId]++; });
+
+  const amCap = computeAmDirectCap(amId);
+  let bestId = null;
+  let bestLoad = Infinity;
+  allTrainers.forEach(trainer => {
+    const isAM = trainer.id === amId;
+    const cap = isAM ? amCap : TL_DIRECT_CAP;
+    const count = reviewerCounts[trainer.id] || 0;
+    if (count >= cap) return; // this trainer is full, skip them
+    if (count < bestLoad) { bestLoad = count; bestId = trainer.id; }
+  });
+  return bestId; // null means every trainer in this org is at cap
+}
+
+/* Entry point for assigning a candidate: try the preferred AM's org first; if that whole org is
+   full (AM + all TLs at cap), overflow to the next least-loaded AM's org instead, so nobody sits
+   pending or gets piled onto someone past their cap. If literally every AM's org is full, fall
+   back to whoever overall has the lowest count (ignoring caps) so the candidate is never left
+   unassigned. */
+function findAssignmentAcrossOrgs(preferredAmId, allUsers, reviewers) {
+  const accountManagers = reviewers.filter(r => r.isAccountManager);
+  const otherAmIds = accountManagers.map(am => am.id)
+    .filter(id => id !== preferredAmId)
+    .sort((a, b) => computeAmLoad(a) - computeAmLoad(b));
+  const amOrder = preferredAmId ? [preferredAmId].concat(otherAmIds) : otherAmIds;
+
+  for (const amId of amOrder) {
+    const result = findAssignmentInOrg(amId, allUsers, reviewers);
+    if (result) return result;
+  }
+
+  // Last resort: every org is completely full — assign to whoever overall has the lowest count.
+  let bestId = reviewers[0] ? reviewers[0].id : undefined;
+  let bestLoad = Infinity;
+  reviewers.forEach(r => {
+    const count = allUsers.filter(u => u.status === 'approved' && u.reviewerId === r.id).length;
+    if (count < bestLoad) { bestLoad = count; bestId = r.id; }
+  });
+  return bestId;
+}
+
+/* AM direct cap computed dynamically via computeAmDirectCap(amId) */
+
+function handleAMApprove(userId) {
+  const sessionUser = getCurrentUser();
+  const users = DB.getUsers();
+  const reviewers = DB.getReviewers();
+
+  const assignedReviewerId = findAssignmentAcrossOrgs(sessionUser.id, users, reviewers);
+  if (!assignedReviewerId) return;
+
+  const u = users.find(user => user.id === userId);
+  if (u) { u.status = 'approved'; u.reviewerId = assignedReviewerId; DB.upsertUser(u); openWhatsappMessage(u.phone, congratsWaMessage(u.name)); }
+  rerender();
+}
+
+</script>
+</body>
+</html>
